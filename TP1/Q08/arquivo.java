@@ -14,7 +14,8 @@ public class arquivo{
 	public static int commaIndex(String s){
 		boolean search = true;
 		int i = -1;
-		while(i<s.length() && search){
+		int reps = s.length()-1;
+		while(i<reps && search){
 			i++;
 			if(s.charAt(i)==',' || s.charAt(i)=='.') search = false;
 		}
@@ -36,20 +37,26 @@ public class arquivo{
 	public static void printValue(String s){
 		int comma = commaIndex(s);
 		if(comma==-1) System.out.println(toi(s));
-		else System.out.println(tob(s), comma);
+		else System.out.printf("%.3f\n", tob(s, comma));
+	}
+
+	public static void reader(RandomAccessFile fil, int i){
+		if(i>0){
+			try{
+				String s = fil.readLine();
+				reader(fil, i-1);
+				printValue(s);
+			} catch(IOException e){
+				System.out.println("Ocorreu um erro");
+			}
+		}
 	}
 
 	public static void main(String[] args){
 		try{
 			RandomAccessFile fil = new RandomAccessFile("pub.in", "rw");
-			String s = fil.readLine();
-			int reps = toi(s),
-				i = 0;
-			while(reps>0){
-				fil.seek(fil.getFilePointer() - s.length();
-				printValue(s);
-				reps--;
-			}
+			int i = toi(fil.readLine());
+			reader(fil, i);
 		} catch(IOException e){
 			System.out.println("Ocorreu um erro");
 		}
