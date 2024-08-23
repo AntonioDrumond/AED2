@@ -5,8 +5,10 @@ public class arquivo{
 
 	public static int toi(String s){
 		int result = 0;
-		for(int i=s.length(); i>0; i--){
-			result += Math.pow(10, i) * (int)(s.charAt(i-1)-48);
+		int j = s.length();
+		for(int i=0; i<s.length(); i++){
+			j--;
+			result += Math.pow(10, j) * (int)(s.charAt(i)-48);
 		}
 		return result;
 	}
@@ -52,7 +54,7 @@ public class arquivo{
 		}
 	}
 
-	public static void main(String[] args){
+	/*public static void main(String[] args){
 		try{
 			RandomAccessFile fil = new RandomAccessFile("pub.in", "rw");
 			int i = toi(fil.readLine());
@@ -60,5 +62,41 @@ public class arquivo{
 		} catch(IOException e){
 			System.out.println("Ocorreu um erro");
 		}
+	}*/
+
+	public static void main(String[] args){
+		try{
+			RandomAccessFile fil = new RandomAccessFile("my.out", "rw");
+			int reps = toi(MyIO.readLine());
+			for(int i=0; i<reps; i++){
+				double x = MyIO.readDouble();
+				fil.writeDouble(x);
+			}
+			fil.close();
+			fil = new RandomAccessFile("my.out", "r");
+			for(int i=reps-1; i>=0; i--){
+				fil.seek(i*8);
+				double real = fil.readDouble();
+				int inte = (int)real;
+				if(real==inte) MyIO.println(inte);
+				else MyIO.println(real);
+			}
+			fil.close();
+		} catch(IOException e){
+			MyIO.println("Ocorreu um erro");
+		}
 	}
+
+	/*public static void main(String[] args){
+		printValue("810");
+		System.out.println(toi("51"));
+		printValue("31.14");
+		try{
+			RandomAccessFile fil = new RandomAccessFile("pub.in", "rw");
+			int i = toi(fil.readLine());
+			System.out.println(i);
+		} catch(IOException e){
+			System.out.println("erro");
+		}
+	}*/
 }
