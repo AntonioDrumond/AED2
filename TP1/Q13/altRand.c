@@ -25,8 +25,8 @@ char* alterar(char* s){
 }
 
 int main(){
-	//srand(time(NULL));
-	srand(4);
+	srand(time(NULL));
+	//srand(4);
 	char* s;
 	bool work = true;
 	while(work){

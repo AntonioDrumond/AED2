@@ -1,6 +1,6 @@
 import java.util.Scanner;
 
-public class algBool{
+public class algBoolReco{
 
 	public static boolean stop(String s){
 		return (s.length()==1 && s.charAt(0)=='0');
@@ -17,29 +17,8 @@ public class algBool{
 	public static String simplify(String s, boolean[] bools){
 		int rem = ((bools.length + 1)*2)-1;
 		s = sbs(s, rem, s.length());
-		String result = new String("");
-		for(int i=0; i<s.length(); i++){
-			char x = s.charAt(i);
-			if(x=='A') result += ((bools[0])?1:0);
-			else if(x=='B') result += ((bools[1])?1:0);
-			else if(x=='C') result += ((bools[2])?1:0);
-			else if(x=='a'){
-				result += 'a';
-				i+=2;
-			}
-			else if(x=='o'){
-				result += 'o';
-				i++;
-			}
-			else if(x=='n'){
-				result += '!';
-				i+=2;
-			}
-			else if(x!=' ' && x!=',') result += x;
-		}
-		return result;
+		return simplify(s, bools, 0);
 	}
-
 
 	public static boolean[] getBools(String s){
 		int nBools = (int)s.charAt(0)-'0';
@@ -59,14 +38,30 @@ public class algBool{
 		return bools;
 	}
 
+	public static String simplify(String s, boolean[] bools, int i){
+		if(i>=s.length()) return "";
+		else{
+			char x = s.charAt(i);
+			if(x=='A') return ((bools[0])?1:0) + simplify(s, bools, i+1);
+			else if(x=='B') return ((bools[1])?1:0) + simplify(s, bools, i+1);
+			else if(x=='C') return ((bools[2])?1:0) + simplify(s, bools, i+1);
+			else if(x=='a') return "a" + simplify(s, bools, i+3);
+			else if(x=='o') return "o" + simplify(s, bools, i+2);
+			else if(x=='n') return "!" + simplify(s, bools, i+3);
+			else if(x!=' ' && x!=',') return x + simplify(s, bools, i+1);
+			else return simplify(s, bools, i+1);
+		}
+	}
+
 	public static char solve(String s){
 		Stack pilha = new Stack();
-		int i = 0;
-		while(i<s.length()){
+		return solve(s, pilha, 0);
+	}
+
+	public static char solve(String s, Stack pilha, int i){
+		if(i<s.length()){
 			char x = s.charAt(i);
-			char aux = ' ';
-			if(x!=')')
-				pilha.add(s.charAt(i));
+			if(x!=')') pilha.add(x);
 			else{
 				String subEx = new String("");
 				do{
@@ -75,12 +70,13 @@ public class algBool{
 				char operation = pilha.remove();
 				pilha.add(operate(operation, subEx));
 			}
-			i++;
+			//pilha.print();
+			return solve(s, pilha, i+1);
 		}
-		return pilha.top.data;
+		else return pilha.top.data;
 	}
 
-	public static char operate(char operation, String expr){
+	static char operate(char operation, String expr){
 		if(operation=='!'){
 			char result = '0';
 			for(int i=0; i<expr.length(); i++){
@@ -118,6 +114,7 @@ public class algBool{
 			return result;
 		}
 	}
+
 
 	public static void main(String[] args){
 		Scanner sc = new Scanner(System.in);
@@ -176,6 +173,22 @@ class Stack{
 			top = top.next;
 			tmp.next = null;
 			return backup;
+		}
+	}
+
+	public void print()
+	{
+		Cell aux = this.top;
+		printRec(aux);
+		System.out.println("");
+	}
+
+	public void printRec(Cell aux)
+	{
+		if(aux != null)
+		{
+			printRec(aux.next);
+			System.out.print(aux.data);
 		}
 	}
 }
