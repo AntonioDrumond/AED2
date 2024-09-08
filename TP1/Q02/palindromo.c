@@ -12,7 +12,7 @@ bool pali(char* s){
 	int len = strlen(s)-1,
 		i = 0,
 		f = len;
-	len = len/2 + 1;
+	len = len/2;
 	bool result = true;
 	while(result && i!=f && i<len){
 		if(s[i] != s[f]) result = false;
