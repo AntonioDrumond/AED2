@@ -3,7 +3,6 @@
 
 #include <stdlib.h>
 
-
 #if defined(_WIN32) || defined(_WIN64) || defined(__WINDOWS__)
 	#include <windows.h>
 	#define slep Sleep
