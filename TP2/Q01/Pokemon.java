@@ -114,9 +114,24 @@ class Pokemon{
 		this.captureDate = captureDate;
 	}
 
+	//____Print and Read____
+	public void print(){
+		System.out.println("[#id -> name: description - [types] - [abilities] - weight - height - captureRate - isLegendary - generation] - captureDate");
+		System.out.print("[#" + id + " -> " + name + ": " + description + " - [");
 
-	
+		int reps = types.size();
+		for(int i=0; i<reps-1; i++){
+			System.out.print("'" + types.get(i) + "', ");
+		}
+		System.out.print("'" + types.get(reps) + "'] - [");
 
-	
+		reps = abilities.size();
+		for(int i=0; i<reps-1; i++){
+			System.out.print("'" + abilities.get(i) + "', ");
+		}
+		System.out.print("'" + abilities.get(reps) + "'] - ");
+
+		System.out.print(weight + "kg - " + height + "m - " + captureRate + "% - ");
+		if(isLegendary()) 
 
 }
