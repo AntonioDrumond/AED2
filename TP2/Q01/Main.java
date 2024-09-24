@@ -213,3 +213,32 @@ class Pokemon{
 	}
 
 }
+
+public class Main{
+
+	public static void main(String[] args){
+		try{
+			
+			//Adquirir dados
+			Pokemon[] pokes = Pokemon.readFile("/tmp/pokemon.csv");
+
+			//Exercicio
+			
+			Scanner sc = new Scanner(System.in);
+			String input = null;
+			boolean stop = false;
+			while(!stop){
+				input = sc.nextLine();
+				if(input.equals("FIM")) stop = true;
+				else pokes[Integer.parseInt(input)-1].print();
+			}
+
+		} catch(FileNotFoundException e){
+			System.out.println("ERRO: Arquivo nao encontrado.");
+		} catch(Exception e){
+			System.out.println("ERRO");
+		}
+
+	}
+
+}
