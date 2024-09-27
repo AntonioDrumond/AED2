@@ -188,7 +188,6 @@ class Pokemon{
 		tipos.add(type1);
 		if(!type2.equals("")) tipos.add(type2);
 		setTypes(tipos);
-	
 
 		boolean hasComma = false;
 		ArrayList<String> abis = new ArrayList<String>();
