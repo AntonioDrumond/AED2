@@ -45,6 +45,11 @@ class Pokemon{
 		this.captureDate = new Date();
 	}
 
+
+	public Pokemon clon(){
+		return new Pokemon(id, generation, name, description, types, abilities, weight, height, captureRate, legendary, captureDate);
+	}
+
 	public static Pokemon make(String s) throws Exception {
 		Pokemon result = new Pokemon();
 		result.read(s);
@@ -188,6 +193,7 @@ class Pokemon{
 		tipos.add(type1);
 		if(!type2.equals("")) tipos.add(type2);
 		setTypes(tipos);
+	
 
 		boolean hasComma = false;
 		ArrayList<String> abis = new ArrayList<String>();
@@ -213,31 +219,105 @@ class Pokemon{
 
 }
 
-public class Main {
+
+//_____________________________________________________________________________________________________________________________________________________
+//=====================================================================================================================================================
+//_____________________________________________________________________________________________________________________________________________________
+
+
+class TP{
+
+	private Instant start;
+	private Instant end;
+	private int comparisons;
+	private int movements;
+
+	TP(){
+		this.start = Instant.now();
+		this.comparisons = 0;
+		this.movements = 0;
+	}
+
+	public void comp(){
+		this.comparisons++;
+	}
+
+	public void move(){
+		this.movements++;
+	}
+
+	void end(){
+		this.end = Instant.now();
+	}
+
+	double diff(){
+		return Duration.between(this.start, this.end).getNano() / 1000000000.0;
+	}
+
+	void print(String fileName) throws Exception{
+		PrintWriter write = new PrintWriter(new FileWriter(fileName));
+		write.printf("Matrícula: 855947\t");
+		write.printf("Tempo de execução: " + diff() + "\t");
+		write.printf("Comparações: " + comparisons + "\t");
+		write.printf("Movimentações: " + movements);
+		write.close();
+	}
+
+	void printSearch(String fileName) throws Exception{
+		PrintWriter write = new PrintWriter(new FileWriter(fileName));
+		write.printf("Matrícula: 855947\t");
+		write.printf("Tempo de execução: " + diff() + "\t");
+		write.printf("Comparações: " + comparisons);
+		write.close();
+	}
+	
+}
+
+//_____________________________________________________________________________________________________________________________________________________
+//=====================================================================================================================================================
+//_____________________________________________________________________________________________________________________________________________________
+
+
+public class Q03{
+
+	public static boolean search(ArrayList<Pokemon> pokes, String key, TP tp){
+		int reps = pokes.size();
+		boolean found = false;
+		for(int i=0; i<reps && !found; i++){
+			if(key.equals(pokes.get(i).getName())) found = true;
+			tp.comp();
+		}
+		return found;
+	}
 
 	public static void main(String[] args){
 		try{
-			
-			//Adquirir dados
-			Pokemon[] pokes = Pokemon.readFile("/tmp/pokemon.csv");
 
-			//Exercicio
-			
+			Pokemon[] pokes = Pokemon.readFile("/tmp/pokemon.csv");
 			Scanner sc = new Scanner(System.in);
-			String input = null;
-			boolean stop = false;
-			while(!stop){
+
+			ArrayList<Pokemon> using = new ArrayList<Pokemon>();
+			String input = sc.nextLine();
+			while(!input.equals("FIM")){
+				int n = Integer.parseInt(input);
+				using.add(pokes[n-1].clon());
 				input = sc.nextLine();
-				if(input.equals("FIM")) stop = true;
-				else pokes[Integer.parseInt(input)-1].print();
 			}
+			
+			TP tp = new TP();
+			input = sc.nextLine();
+			while(!input.equals("FIM")){
+				if(search(using, input, tp)) System.out.println("SIM");
+				else System.out.println("NAO");
+				input = sc.nextLine();
+			}
+			tp.end();
+			tp.printSearch("855947_sequencial.txt");
 
 		} catch(FileNotFoundException e){
-			System.out.println("ERRO: Arquivo nao encontrado.");
+			System.out.println(e);
 		} catch(Exception e){
-			System.out.println("ERRO");
+			System.out.println(e);
 		}
-
 	}
-
 }

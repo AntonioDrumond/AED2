@@ -188,6 +188,7 @@ class Pokemon{
 		tipos.add(type1);
 		if(!type2.equals("")) tipos.add(type2);
 		setTypes(tipos);
+	
 
 		boolean hasComma = false;
 		ArrayList<String> abis = new ArrayList<String>();
@@ -213,31 +214,62 @@ class Pokemon{
 
 }
 
-public class Main {
 
-	public static void main(String[] args){
-		try{
-			
-			//Adquirir dados
-			Pokemon[] pokes = Pokemon.readFile("/tmp/pokemon.csv");
+//_____________________________________________________________________________________________________________________________________________________
+//=====================================================================================================================================================
+//_____________________________________________________________________________________________________________________________________________________
 
-			//Exercicio
-			
-			Scanner sc = new Scanner(System.in);
-			String input = null;
-			boolean stop = false;
-			while(!stop){
-				input = sc.nextLine();
-				if(input.equals("FIM")) stop = true;
-				else pokes[Integer.parseInt(input)-1].print();
-			}
 
-		} catch(FileNotFoundException e){
-			System.out.println("ERRO: Arquivo nao encontrado.");
-		} catch(Exception e){
-			System.out.println("ERRO");
-		}
+class TP{
 
+	private Instant start;
+	private Instant end;
+	private int comparisons;
+	private int movements;
+
+	TP(){
+		this.start = Instant.now();
+		this.comparisons = 0;
+		this.movements = 0;
 	}
 
+	public void comp(){
+		this.comparisons++;
+	}
+
+	public void move(){
+		this.movements++;
+	}
+
+	void end(){
+		this.end = Instant.now();
+	}
+
+	double diff(){
+		return Duration.between(this.start, this.end).getNano() / 1000000000.0;
+	}
+
+	void print(String fileName) throws Exception{
+		PrintWriter write = new PrintWriter(new FileWriter(fileName));
+		write.printf("Matrícula: 855947\t");
+		write.printf("Tempo de execução: " + diff() + "\t");
+		write.printf("Comparações: " + comparisons + "\t");
+		write.printf("Movimentações: " + movements);
+		write.close();
+	}
+
+	void printSearch(String fileName) throws Exception{
+		PrintWriter write = new PrintWriter(new FileWriter(fileName));
+		write.printf("Matrícula: 855947\t");
+		write.printf("Tempo de execução: " + diff() + "\t");
+		write.printf("Comparações: " + comparisons);
+		write.close();
+	}
+	
 }
+
+//_____________________________________________________________________________________________________________________________________________________
+//=====================================================================================================================================================
+//_____________________________________________________________________________________________________________________________________________________
+
+
