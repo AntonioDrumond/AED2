@@ -327,8 +327,13 @@ void quickSort(int* arr, int left, int right){
 }
 
 
-bool search(Pokemon** pokes, const char* key){
-	
+bool search(Pokemon** pokes, int n, const char* key, int* comps){
+	int i = 0,
+		f = n-1,
+		m;
+	while(i<=f){
+		m = (i+f)/2;
+		if(e
 
 }
 
@@ -347,6 +352,7 @@ int main(){
 		input = malloc(20*sizeof(char));
 		scanf(" %s", input);
 	}
+	free(input);
 
 	quickSort(usingIds, 0, i-1); // Colocar pokemons de Using em ordem crescente, para fazer pesquisa binaria
 	Pokemon** using = calloc(i, sizeof(Pokemon*));
@@ -354,8 +360,23 @@ int main(){
 		using[j] = pokes[usingIds[j]-1];
 	}
 
+	clock_t start = clock();
+	int comps = 0;
+	input = malloc(20*sizeof(char));
+	scanf(" %s", input);
+	while(!equals(input, "FIM")){
+		if(search(using, i, input, &comps)) printf("SIM\n");
+		else printf("NAO\n");
+		free(input);
+		input = malloc(20*sizeof(char));
+		scanf(" %s", input);
+	}
+	clock_t end = clock();
 
-
+	free(input);
+	free(using);
+	free(pokes);
+	logSearch("855947_binaria.txt", diff(start, end), comps);
 
 	return 0;
 }
