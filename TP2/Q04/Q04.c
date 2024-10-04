@@ -297,45 +297,72 @@ void logSearch(const char* fileName, double time, int comps){
 //_____________________________________________________________________________________________________________________________________________________
 
 
+int comps = 0;
+int moves = 0;
+
 bool equals(const char* s1, const char* s2){
 	return 0==strcmp(s1, s2);
 }
 
-void swap(int* arr, int a, int b){
+void swapInt(int* arr, int a, int b){
 	int tmp = arr[a];
 	arr[a] = arr[b];
 	arr[b] = tmp;
 }
 
-void quickSort(int* arr, int left, int right){
-	int i = left,
-		j = right;
-	int pivo = arr[(left+right)/2];
-	while(i<=j){
-		while(arr[i]<pivo) i++;
-		while(arr[j]>pivo) j--;
-		if(i<=j){
-			swap(arr, i, j);
-			i++;
-			j--;
-		}
+void swapPoke(Pokemon** arr, int a, int b){
+	Pokemon* tmp = arr[a];
+	arr[a] = arr[b];
+	arr[b] = tmp;
+	moves += 3;
+}
+
+bool shouldSwap(char* a, char* b){ 
+	bool result = false;
+	int i=-1;
+	do{
+		i++;
+		if(a[i] > b[i]) result = true;
+	} while(a[i] == b[i]);
+	return result;
+}
+
+void selection(Pokemon** pokes, int n, int i){
+	int menor = i;
+	for(int j=i+1; j<n; j++){
+		if(shouldSwap(pokes[menor]->name, pokes[j]->name)) menor = j;
 	}
-	if(left<j)
-		quickSort(arr, left, j);
-	if(i<right)
-		quickSort(arr, i, right);
+	swapPoke(pokes, menor, i);
+	if(i<(n-1)) selection(pokes, n, i+1);
+}
+
+void sort(Pokemon** pokes, int n){
+	selection(pokes, n, 0);
 }
 
 
-bool search(Pokemon** pokes, int n, const char* key, int* comps){
+bool search(Pokemon** pokes, int n, const char* key){
 	int i = 0,
 		f = n-1,
 		m;
 	while(i<=f){
-		m = (i+f)/2;
-		if(e
-
+		m = (i+f) / 2;
+		if(equals(pokes[m]->name, key)){ 
+			return true;
+			comps++;
+		}
+		else if(0 > strcmp(pokes[m]->name, key)){
+			i = m+1;
+			comps++;
+		}
+		else if(0 < strcmp(pokes[m]->name, key)){
+			f = m-1;
+			comps++;
+		}
+	}
+	return false;
 }
+
 
 int main(){
 	Pokemon** pokes = readFile("/tmp/pokemon.csv");
@@ -354,18 +381,18 @@ int main(){
 	}
 	free(input);
 
-	quickSort(usingIds, 0, i-1); // Colocar pokemons de Using em ordem crescente, para fazer pesquisa binaria
 	Pokemon** using = calloc(i, sizeof(Pokemon*));
 	for(int j=0; j<i; j++){
 		using[j] = pokes[usingIds[j]-1];
 	}
+	free(usingIds);
+	sort(using, i); // Colocar nomes em ordem alfabética
 
 	clock_t start = clock();
-	int comps = 0;
 	input = malloc(20*sizeof(char));
 	scanf(" %s", input);
 	while(!equals(input, "FIM")){
-		if(search(using, i, input, &comps)) printf("SIM\n");
+		if(search(using, i, input)) printf("SIM\n");
 		else printf("NAO\n");
 		free(input);
 		input = malloc(20*sizeof(char));

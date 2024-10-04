@@ -317,14 +317,24 @@ void swapPoke(Pokemon** arr, int a, int b){
 	moves += 3;
 }
 
+bool shouldSwap(char* a, char* b){ 
+	bool result = false;
+	int i=-1;
+	do{
+		i++;
+		if(a[i] > b[i]) result = true;
+	} while(a[i] == b[i]);
+	return result;
+}
+
 void selection(Pokemon** pokes, int n, int i){
 	int menor = i;
 	for(int j=i+1; j<n; j++){
-		if(0 < strcmp(pokes[menor]->name, pokes[j]->name)) menor = j;
+		if(shouldSwap(pokes[menor]->name, pokes[j]->name)) menor = j;
 		comps++;
 	}
 	swapPoke(pokes, menor, i);
-	if(i<n-1) selection(pokes, n, i+1);
+	if(i<(n-1)) selection(pokes, n, i+1);
 }
 
 void sort(Pokemon** pokes, int n){
@@ -332,9 +342,7 @@ void sort(Pokemon** pokes, int n){
 }
 
 int main(){
-	flag();
 	Pokemon** pokes = readFile("/tmp/pokemon.csv");
-	flag();
 
 	int i=0;
 	int* usingIds = malloc(100*sizeof(int));
@@ -349,19 +357,18 @@ int main(){
 		scanf(" %s", input);
 	}
 	free(input);
-	free(usingIds);
-	flag();
 
 	Pokemon** using = calloc(i, sizeof(Pokemon*));
 	for(int j=0; j<i; j++){
 		using[j] = pokes[usingIds[j]-1];
 	}
+	free(usingIds);
 
 	clock_t start = clock();
-	sort(pokes, i);
+	sort(using, i);
+	for(int j=0; j<i; printMon(using[j++]));
 	clock_t end = clock();
 
-	free(input);
 	free(using);
 	free(pokes);
 	logTP("855947_selecaoRecursiva.txt", diff(start, end), comps, moves);
