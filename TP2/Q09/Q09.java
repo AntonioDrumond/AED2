@@ -286,7 +286,7 @@ class TP{
 //_____________________________________________________________________________________________________________________________________________________
 
 
-public class Q07{
+public class Q09{
 
 	static void swapPoke(Pokemon[] arr, int a, int b){
 		Pokemon tmp = arr[a];
@@ -294,8 +294,91 @@ public class Q07{
 		arr[b] = tmp;
 	}
 
-	static void sort(Pokemon[] pokes, TP tp){
+	static void heapSort(Pokemon[] arr, TP tp){
+		int n = arr.length;
+		int endIndex = n-1;
+		for(int max=1; max<n; max++){
+			makeHeap(arr, max, tp);
+		}
+		while(endIndex>0){
+			swapPoke(arr, 0, endIndex);
+			tp.move(3);
+			endIndex--;
+			redoHeap(arr, endIndex, tp);
+		}
+	}
 
+	static void makeHeap(Pokemon[] arr, int max, TP tp){
+		for(int i=max; max>0 && arr[i].getHeight()>arr[(i-1)/2].getHeight(); i=(i-1)/2){
+			swapPoke(arr, i, (i-1)/2);
+			tp.move(3);
+			tp.comp();
+		}
+	}
+
+	static boolean hasSon(int aux, int endIndex){
+		boolean ver = false;
+		if(((aux*2)+1) <= endIndex) ver = true;
+		return ver;
+	}
+
+	static int getBiggerSon(Pokemon[] arr, int aux, int endIndex, TP tp){
+		int son = 0;
+		if(((2*aux)+1) == endIndex)
+			son = endIndex;
+		else if(arr[(2*aux)+1].getHeight() > arr[(2*aux)+2].getHeight()){
+			son = ((2*aux)+1);
+			tp.comp();
+		}
+		else son = ((2*aux)+2);
+		return son;
+	}
+
+	static void redoHeap(Pokemon[] arr, int endIndex, TP tp){
+		int aux = 0;
+		boolean ctrl = true;
+		while(hasSon(aux, endIndex) && ctrl){
+			int son = getBiggerSon(arr, aux, endIndex, tp);
+			if(arr[aux].getHeight() < arr[son].getHeight()){
+				swapPoke(arr, aux, son);
+				tp.comp();
+				tp.move(3);
+				aux = son;
+			}
+			else ctrl = false;
+		}
+	}
+
+	static boolean shouldSwap(String a, String b, TP tp){
+		boolean result = false;
+		int i = -1;
+		do{
+			i++;
+			if(a.charAt(i) > b.charAt(i)) result = true;
+		}while(a.charAt(i)==b.charAt(i));
+		tp.comp();
+		return result;
+	}
+
+	static void insertion(Pokemon[] arr, TP tp){
+		int n = arr.length;
+		for(int i=1; i<n; i++){
+			Pokemon tmp = arr[i];
+			int j = i-1;
+			while(j>=0 && arr[j].getHeight()==tmp.getHeight() && shouldSwap(arr[j].getName(), tmp.getName(), tp)){
+				tp.comp();
+				arr[j+1] = arr[j];
+				j--;
+				tp.move();
+			}
+			arr[j+1] = tmp;
+			tp.move();
+		}
+	}
+
+	static void sort(Pokemon[] pokes, TP tp){
+		heapSort(pokes, tp);
+		insertion(pokes, tp);
 	}
 		
 
