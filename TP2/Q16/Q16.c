@@ -80,6 +80,12 @@ Date strToDate(char* s){
 	return result;
 }
 
+char* dateToStrAlt(Date i){
+	char* result = malloc(40*sizeof(char));
+	sprintf(result, "%04d/%02d/%02d", i.year, i.month, i.day);
+	return result;
+}
+
 char* dateToStr(Date i){
 	char* result = malloc(40*sizeof(char));
 	sprintf(result, "%02d/%02d/%04d", i.day, i.month, i.year);
@@ -324,52 +330,70 @@ bool shouldSwap(char* a, char* b){
 		i++;
 		if(a[i] > b[i]) result = true;
 	} while(a[i] == b[i]);
+	comps++;
 	return result;
 }
 
-void quickSort(Pokemon** arr, int left, int right){
-	int i = left,
-		j = right;
-	int pivo = arr[((i+j) / 2)]->generation;
-	while(i<=j){
-		while(arr[i]->generation < pivo){
-			i++;
-			comps++;
-		}
-		while(arr[j]->generation > pivo){
-			j--;
-			comps++;
-		}
-		if(i<=j){
-			swapPoke(arr, i, j);
-			i++;
-			j--;
-		}
-	}
-	if(left<j)
-		quickSort(arr, left, j);
-	if(i<right)
-		quickSort(arr, i, right);
-}
-
-void insertion(Pokemon** arr, int n){
-	for(int i=1; i<n; i++){
+void insertStep(Pokemon** arr, int group, int h, int n){
+	for(int i=(group+h); i<n; i+=h){
 		Pokemon* tmp = arr[i];
-		int j = i-1;
-		while(j>=0 && arr[j]->generation==tmp->generation && shouldSwap(arr[j]->name, tmp->name)){
+		int j = i-h;
+		while((j>=0) && (arr[j]->weight>tmp->weight)){
 			comps++;
 			moves++;
-			arr[j+1] = arr[j];
-			j--;
+			arr[j+h] = arr[j];
+			j -= h;
 		}
-		arr[j+1] = tmp;
+		arr[j+h] = tmp;
 		moves++;
 	}
 }
 
+void shell(Pokemon** arr, int n){
+	int h = 1;
+	do {h = (h*3)+1; } while(h<n);
+	do{
+		h /= 3;
+		for(int group = 0; group<h; group++){
+			insertStep(arr, group, h, n);
+		}
+	} while(h>1);
+}
+
+void insertNames(Pokemon** arr, int n){
+	for(int i=1; i<n; i++){
+		Pokemon* tmp = arr[i];
+		int j = i-1;
+		while(j>=0 && arr[j]->weight==tmp->weight && shouldSwap(arr[j]->name, tmp->name)){
+			arr[j+1] = arr[j];
+			j--;
+		}
+		arr[j+1] = tmp;
+	}
+}
+
+int dateCompare(Date a, Date b){
+	char* sa = dateToStrAlt(a);
+	char* sb = dateToStrAlt(b);
+	int result = strcmp(sa, sb);
+	free(sa);
+	free(sb);
+	return result;
+}
+
 void sort(Pokemon** pokes, int n){
-	quickSort(pokes, 0, n-1);
-	insertion(pokes, n);
+	for(int i=1; i<n; i++){
+		Pokemon* tmp = pokes[i];
+		int j = i-1;
+		while(j>=0 && 0 < dateCompare(pokes[j]->captureDate, tmp->captureDate)){
+			comps++;
+			pokes[j+1] = pokes[j];
+			moves++;
+			j--;
+		}
+		pokes[j+1] = tmp;
+		moves++;
+	}
 }
 
 int main(){
@@ -397,12 +421,12 @@ int main(){
 
 	clock_t start = clock();
 	sort(using, i);
-	for(int j=0; j<i; printMon(using[j++]));
+	for(int j=0; j<10; printMon(using[j++]));
 	clock_t end = clock();
 
 	free(using);
 	free(pokes);
-	logTP("855947_quicksort.txt", diff(start, end), comps, moves);
+	logTP("855947_insercao.txt", diff(start, end), comps, moves);
 
 	return 0;
 }

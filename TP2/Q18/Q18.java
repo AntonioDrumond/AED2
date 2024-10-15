@@ -286,7 +286,7 @@ class TP{
 //_____________________________________________________________________________________________________________________________________________________
 
 
-public class Q07{
+public class Q18{
 
 	static void swapPoke(Pokemon[] arr, int a, int b){
 		Pokemon tmp = arr[a];
@@ -294,26 +294,55 @@ public class Q07{
 		arr[b] = tmp;
 	}
 
-	static void sort(Pokemon[] pokes, TP tp){
-		int n = pokes.length;
-
-		for(int i=1; i<n; i++){
-			Pokemon tmp = pokes[i];
-			int j = i-1;
-			//SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-			SimpleDateFormat f = new SimpleDateFormat("yyyy.MM.dd");
-			while(j>=0 && ( 0 < f.format(pokes[j].getCaptureDate()).compareTo(f.format(tmp.getCaptureDate())))){
+	static void quickSort(Pokemon[] arr, int left, int right, TP tp){
+		int i = left,
+			j = right;
+		int pivo = arr[((i+j) / 2)].getGeneration();
+		while(i<=j){
+			while(arr[i].getGeneration() < pivo){
+				i++;
 				tp.comp();
-				pokes[j+1] = pokes[j];
-				tp.move();
+			}
+			while(arr[j].getGeneration() > pivo){
+				j--;
+				tp.comp();
+			}
+			if(i<=j){
+				swapPoke(arr, i, j);
+				i++;
 				j--;
 			}
-			pokes[j+1] = tmp;
+		}
+		if(left<j)
+			quickSort(arr, left, j, tp);
+		if(i<right)
+			quickSort(arr, i, right, tp);
+	}
+
+	static boolean shouldSwap(String a, String b){
+		return 0 <  a.compareTo(b);
+	}
+
+	static void insertion(Pokemon[] arr, TP tp){
+		int n = arr.length;
+		for(int i=1; i<n; i++){
+			Pokemon tmp = arr[i];
+			int j = i-1;
+			while(j>=0 && arr[j].getGeneration()==tmp.getGeneration() && shouldSwap(arr[j].getName(), tmp.getName())){
+				tp.comp();
+				tp.move();
+				arr[j+1] = arr[j];
+				j--;
+			}
+			arr[j+1] = tmp;
 			tp.move();
 		}
-
 	}
-		
+
+	static void sort(Pokemon[] pokes, TP tp, int k){
+		quickSort(pokes, 0, pokes.length-1, tp);
+		insertion(pokes, tp);
+	}
 
 	public static void main(String[] args){
 		try{
@@ -336,10 +365,10 @@ public class Q07{
 			}
 			
 			TP tp = new TP();
-			sort(using, tp);
+			sort(using, tp, 10);
 			tp.end();
-			for(int i=0; i<using.length; using[i++].print());
-			tp.print("855947_insercao.txt");
+			for(int i=0; i<10; using[i++].print());
+			tp.print("855947_quicksort.txt");
 
 		} catch(FileNotFoundException e){
 			System.out.println(e);

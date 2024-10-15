@@ -286,7 +286,7 @@ class TP{
 //_____________________________________________________________________________________________________________________________________________________
 
 
-public class Q07{
+public class Q15{
 
 	static void swapPoke(Pokemon[] arr, int a, int b){
 		Pokemon tmp = arr[a];
@@ -294,24 +294,17 @@ public class Q07{
 		arr[b] = tmp;
 	}
 
-	static void sort(Pokemon[] pokes, TP tp){
+	static void sort(Pokemon[] pokes, TP tp, int k){
 		int n = pokes.length;
-
-		for(int i=1; i<n; i++){
-			Pokemon tmp = pokes[i];
-			int j = i-1;
-			//SimpleDateFormat f = new SimpleDateFormat("dd/MM/yyyy");
-			SimpleDateFormat f = new SimpleDateFormat("yyyy.MM.dd");
-			while(j>=0 && ( 0 < f.format(pokes[j].getCaptureDate()).compareTo(f.format(tmp.getCaptureDate())))){
+		for(int i=0; i<k; i++){
+			int menor = i;
+			for(int j=i+1; j<n; j++){
+				if(0 < pokes[menor].getName().compareTo(pokes[j].getName())) menor = j;
 				tp.comp();
-				pokes[j+1] = pokes[j];
-				tp.move();
-				j--;
 			}
-			pokes[j+1] = tmp;
-			tp.move();
+			swapPoke(pokes, menor, i);
+			tp.move(3);
 		}
-
 	}
 		
 
@@ -336,10 +329,10 @@ public class Q07{
 			}
 			
 			TP tp = new TP();
-			sort(using, tp);
+			sort(using, tp, 10);
 			tp.end();
-			for(int i=0; i<using.length; using[i++].print());
-			tp.print("855947_insercao.txt");
+			for(int i=0; i<10; using[i++].print());
+			tp.print("855947_selecao.txt");
 
 		} catch(FileNotFoundException e){
 			System.out.println(e);

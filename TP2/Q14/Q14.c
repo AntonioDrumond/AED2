@@ -317,6 +317,50 @@ void swapPoke(Pokemon** arr, int a, int b){
 	moves += 3;
 }
 
+int charAt(const char* s, int x){
+	if(x<strlen(s))
+		return s[x];
+	else return 0;
+}
+
+int maxAbi(Pokemon** pokes, int n){
+	int max = 0;
+	for(int i=0; i<n; i++){
+		int len = strlen(pokes[i]->abilities.ab1);
+		if(len>max) max = len;
+	}
+	return max;
+}
+
+void radix(Pokemon** pokes, int n, int maxAb){
+	
+	for(int pos = maxAb-1; pos>=0; pos--){
+		int count[256] = {0};
+		Pokemon** tmp = calloc(n, sizeof(Pokemon*));
+
+		for(int i=0; i<n; i++){
+			int cha = charAt(pokes[i]->abilities.ab1, pos);
+			count[cha]++;
+		}
+
+		for(int i=1; i<256; i++)
+			count[i] += count[i-1];
+
+		for(int i=n-1; i>=0; i--){
+			int cha = charAt(pokes[i]->abilities.ab1, pos);
+			tmp[--count[cha]] = pokes[i];
+			moves++;
+		}
+
+		for(int i=0; i<n; i++){
+			pokes[i] = tmp[i];
+			moves++;
+		}
+
+		free(tmp);
+	}
+}
+
 bool shouldSwap(char* a, char* b){ 
 	bool result = false;
 	int i=-1;
@@ -327,36 +371,11 @@ bool shouldSwap(char* a, char* b){
 	return result;
 }
 
-void quickSort(Pokemon** arr, int left, int right){
-	int i = left,
-		j = right;
-	int pivo = arr[((i+j) / 2)]->generation;
-	while(i<=j){
-		while(arr[i]->generation < pivo){
-			i++;
-			comps++;
-		}
-		while(arr[j]->generation > pivo){
-			j--;
-			comps++;
-		}
-		if(i<=j){
-			swapPoke(arr, i, j);
-			i++;
-			j--;
-		}
-	}
-	if(left<j)
-		quickSort(arr, left, j);
-	if(i<right)
-		quickSort(arr, i, right);
-}
-
 void insertion(Pokemon** arr, int n){
 	for(int i=1; i<n; i++){
 		Pokemon* tmp = arr[i];
 		int j = i-1;
-		while(j>=0 && arr[j]->generation==tmp->generation && shouldSwap(arr[j]->name, tmp->name)){
+		while(j>=0 && 0==strcmp(arr[j]->abilities.ab1, tmp->abilities.ab1) && shouldSwap(arr[j]->name, tmp->name)){
 			comps++;
 			moves++;
 			arr[j+1] = arr[j];
@@ -367,8 +386,10 @@ void insertion(Pokemon** arr, int n){
 	}
 }
 
+
+
 void sort(Pokemon** pokes, int n){
-	quickSort(pokes, 0, n-1);
+	radix(pokes, n, maxAbi(pokes, n));
 	insertion(pokes, n);
 }
 
@@ -402,7 +423,7 @@ int main(){
 
 	free(using);
 	free(pokes);
-	logTP("855947_quicksort.txt", diff(start, end), comps, moves);
+	logTP("855947_radixsort.txt", diff(start, end), comps, moves);
 
 	return 0;
 }

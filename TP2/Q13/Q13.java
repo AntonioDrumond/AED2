@@ -288,14 +288,74 @@ class TP{
 
 public class Q13{
 
+	static void intercalar(Pokemon[] arr, int esq, int meio, int dir, TP tp){
+		int nEsq = (meio+1)-esq;
+		int nDir = dir-meio;
+		Pokemon[] arrayEsq = new Pokemon[nEsq+1];
+		Pokemon[] arrayDir = new Pokemon[nDir+1];
+
+		// Criar sentinela
+		Pokemon sent = new Pokemon();
+		ArrayList<String> t = new ArrayList<String>();
+		t.add("\uFFFF");
+		sent.setTypes(t);
+
+		arrayEsq[nEsq] = arrayDir[nDir] = sent;
+		tp.move(2);
+
+		int iEsq, iDir, i;
+
+		for(iEsq=0; iEsq<nEsq; iEsq++){
+			arrayEsq[iEsq] = arr[esq+iEsq];
+			tp.move();
+		}
+
+		for(iDir=0; iDir<nDir; iDir++){
+			arrayDir[iDir] = arr[meio+1+iDir];
+			tp.move();
+		}
+		
+		for(iEsq=iDir=0, i=esq; i<=dir; i++){
+			arr[i] = 0>=arrayEsq[iEsq].getTypes().get(0).compareTo(arrayDir[iDir].getTypes().get(0)) ? arrayEsq[iEsq++] : arrayDir[iDir++];
+			tp.comp();
+			tp.move();
+		}
+	}
+
+	static void merge(Pokemon[] arr, int esq, int dir, TP tp){
+		if(esq<dir){
+			int meio = (esq+dir) / 2;
+			merge(arr, esq, meio, tp);
+			merge(arr, meio+1, dir, tp);
+			intercalar(arr, esq, meio, dir, tp);
+		}
+	}
+
 	static void swapPoke(Pokemon[] arr, int a, int b){
 		Pokemon tmp = arr[a];
 		arr[a] = arr[b];
 		arr[b] = tmp;
 	}
 
+	static void insertName(Pokemon[] arr, TP tp){
+		int n = arr.length;
+		for(int i=1; i<n; i++){
+			Pokemon tmp = arr[i];
+			int j = i-1;
+			while(j>=0 && 0==arr[j].getTypes().get(0).compareTo(tmp.getTypes().get(0)) && 0<arr[j].getName().compareTo(tmp.getName())){
+				tp.comp(2);
+				arr[j+1] = arr[j];
+				tp.move();
+				j--;
+			}
+			arr[j+1] = tmp;
+			tp.move();
+		}
+	}
+
 	static void sort(Pokemon[] pokes, TP tp){
-		mergeSort(pokes, 0, pokes.length, tp);
+		merge(pokes, 0, pokes.length-1, tp);
+		insertName(pokes, tp);
 	}
 		
 
@@ -328,7 +388,7 @@ public class Q13{
 		} catch(FileNotFoundException e){
 			System.out.println(e);
 		} catch(Exception e){
-			System.out.println(e);
+			e.printStackTrace();
 		}
 	}
 }

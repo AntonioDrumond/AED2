@@ -375,10 +375,27 @@ public class Q11{
 		for(int i=0; i<n; i++) tp.move();
 	}
 
+	static void insertName(Pokemon[] arr, TP tp){
+		int n = arr.length;
+		for(int i=1; i<n; i++){
+			Pokemon tmp = arr[i];
+			int j = i-1;
+			while(j>=0 && arr[j].getCaptureRate()==tmp.getCaptureRate() && 0<arr[j].getName().compareTo(tmp.getName())){
+				tp.comp(2);
+				arr[j+1] = arr[j];
+				tp.move();
+				j--;
+			}
+			arr[j+1] = tmp;
+			tp.move();
+		}
+	}
+
 	static void sort(Pokemon[] pokes, TP tp){
-		sortId(pokes, tp);
-		sortGen(pokes, tp);
+		//sortId(pokes, tp);
+		//sortGen(pokes, tp);
 		sortRate(pokes, tp);
+		insertName(pokes, tp);
 	}
 		
 

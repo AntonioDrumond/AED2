@@ -327,48 +327,77 @@ bool shouldSwap(char* a, char* b){
 	return result;
 }
 
-void quickSort(Pokemon** arr, int left, int right){
-	int i = left,
-		j = right;
-	int pivo = arr[((i+j) / 2)]->generation;
-	while(i<=j){
-		while(arr[i]->generation < pivo){
-			i++;
-			comps++;
-		}
-		while(arr[j]->generation > pivo){
-			j--;
-			comps++;
-		}
-		if(i<=j){
-			swapPoke(arr, i, j);
-			i++;
-			j--;
-		}
+void makeHeap(Pokemon** arr, int max){
+	for(int i=max; max>0 && arr[i]->height>arr[(i-1)/2]->height; i=(i-1)/2){
+		swapPoke(arr, i, (i-1)/2);
+		moves+=3;
+		comps++;
 	}
-	if(left<j)
-		quickSort(arr, left, j);
-	if(i<right)
-		quickSort(arr, i, right);
+}
+
+bool hasSon(int aux, int endIndex){
+	bool ver = false;
+	if(((aux*2)+1) <= endIndex) ver = true;
+	return ver;
+}
+
+int getBiggerSon(Pokemon** arr, int aux, int endIndex){
+	int son = 0;
+	if(((2*aux)+1) == endIndex)
+		son = endIndex;
+	else if(arr[(2*aux)+1]->height > arr[(2*aux)+2]->height){
+		son = ((2*aux)+1);
+		comps++;
+	}
+	else son = ((2*aux)+2);
+	return son;
+}
+
+void redoHeap(Pokemon** arr, int endIndex){
+	int aux = 0;
+	bool ctrl = true;
+	while(hasSon(aux, endIndex) && ctrl){
+		int son = getBiggerSon(arr, aux, endIndex);
+		if(arr[aux]->height < arr[son]->height){
+			swapPoke(arr, aux, son);
+			comps++;
+			moves+=3;
+			aux = son;
+		}
+		else ctrl = false;
+	}
+}
+
+void heapSort(Pokemon** arr, int n){
+	int endIndex = n-1;
+	for(int max=1; max<n; max++){
+		makeHeap(arr, max);
+	}
+	while(endIndex>0){
+		swapPoke(arr, 0, endIndex);
+		moves+=3;
+		endIndex--;
+		redoHeap(arr, endIndex);
+	}
 }
 
 void insertion(Pokemon** arr, int n){
 	for(int i=1; i<n; i++){
 		Pokemon* tmp = arr[i];
 		int j = i-1;
-		while(j>=0 && arr[j]->generation==tmp->generation && shouldSwap(arr[j]->name, tmp->name)){
+		while(j>=0 && arr[j]->height==tmp->height && shouldSwap(arr[j]->name, tmp->name)){
 			comps++;
-			moves++;
 			arr[j+1] = arr[j];
 			j--;
+			moves++;
 		}
 		arr[j+1] = tmp;
 		moves++;
 	}
 }
 
-void sort(Pokemon** pokes, int n){
-	quickSort(pokes, 0, n-1);
+void sort(Pokemon** pokes, int n, int k){
+	heapSort(pokes, k);
 	insertion(pokes, n);
 }
 
@@ -396,13 +425,13 @@ int main(){
 	free(usingIds);
 
 	clock_t start = clock();
-	sort(using, i);
-	for(int j=0; j<i; printMon(using[j++]));
+	sort(using, i, i);
+	for(int j=0; j<10; printMon(using[j++]));
 	clock_t end = clock();
 
 	free(using);
 	free(pokes);
-	logTP("855947_quicksort.txt", diff(start, end), comps, moves);
+	logTP("855947_heapsort.txt", diff(start, end), comps, moves);
 
 	return 0;
 }
