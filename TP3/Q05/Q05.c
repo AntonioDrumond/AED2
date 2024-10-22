@@ -298,24 +298,31 @@ void logSearch(const char* fileName, double time, int comps){
 
 
 typedef struct {
-	Pokemon** arr;
-	int size;
+	Pokemon* p;
+	Cell* next;
+	Cell* prev;
+} Cell;
+
+Cell* makeCell(Pokemon* x){
+	Cell* ret = calloc(1, sizeof(Cell));
+	ret->next = NULL;
+	ret->prev = NULL;
+	ret->p = x;
+	return ret;
+}
+
+typedef struct {
 	int n;
+	Cell* start;
+	Cell* end;
 } Lista;
 
 Lista* makeLista(int x){
 	Lista* ret = calloc(1, sizeof(Lista));
+	ret->start = makeCell(NULL);
+	ret->end = start;
 	ret->n = 0;
-	ret->size = x;
-	ret->arr = calloc(x+1, sizeof(Pokemon*));
 	return ret;
-}
-
-void printLista(Lista* l){
-	for(int i=0; i<l->n; i++){
-		printf("[%d] ", i);
-		printMon(l->arr[i]);
-	}
 }
 
 Pokemon* pop(Lista* l, int x){
@@ -329,7 +336,6 @@ Pokemon* pop(Lista* l, int x){
 		}
 		l->n--;
 	}
-	printf("(R) %s\n", ret->name);
 	return ret;
 }
 
@@ -338,7 +344,7 @@ Pokemon* popStart(Lista* l){
 }
 
 Pokemon* popEnd(Lista* l){
-	return pop(l, l->n-1);
+	return pop(l, l->n);
 }
 
 void push(Lista* l, Pokemon* p, int x){
@@ -393,6 +399,50 @@ void swapPoke(Pokemon** arr, int a, int b){
 	moves += 3;
 }
 
+int charAt(const char* s, int x){
+	if(x<strlen(s))
+		return s[x];
+	else return 0;
+}
+
+int maxAbi(Pokemon** pokes, int n){
+	int max = 0;
+	for(int i=0; i<n; i++){
+		int len = strlen(pokes[i]->abilities.ab1);
+		if(len>max) max = len;
+	}
+	return max;
+}
+
+void radix(Pokemon** pokes, int n, int maxAb){
+	
+	for(int pos = maxAb-1; pos>=0; pos--){
+		int count[256] = {0};
+		Pokemon** tmp = calloc(n, sizeof(Pokemon*));
+
+		for(int i=0; i<n; i++){
+			int cha = charAt(pokes[i]->abilities.ab1, pos);
+			count[cha]++;
+		}
+
+		for(int i=1; i<256; i++)
+			count[i] += count[i-1];
+
+		for(int i=n-1; i>=0; i--){
+			int cha = charAt(pokes[i]->abilities.ab1, pos);
+			tmp[--count[cha]] = pokes[i];
+			moves++;
+		}
+
+		for(int i=0; i<n; i++){
+			pokes[i] = tmp[i];
+			moves++;
+		}
+
+		free(tmp);
+	}
+}
+
 bool shouldSwap(char* a, char* b){ 
 	bool result = false;
 	int i=-1;
@@ -403,25 +453,51 @@ bool shouldSwap(char* a, char* b){
 	return result;
 }
 
+void insertion(Pokemon** arr, int n){
+	for(int i=1; i<n; i++){
+		Pokemon* tmp = arr[i];
+		int j = i-1;
+		while(j>=0 && 0==strcmp(arr[j]->abilities.ab1, tmp->abilities.ab1) && shouldSwap(arr[j]->name, tmp->name)){
+			comps++;
+			moves++;
+			arr[j+1] = arr[j];
+			j--;
+		}
+		arr[j+1] = tmp;
+		moves++;
+	}
+}
+
+
+
+void sort(Pokemon** pokes, int n){
+	radix(pokes, n, maxAbi(pokes, n));
+	insertion(pokes, n);
+}
+
 int main(){
 	Pokemon** pokes = readFile("/tmp/pokemon.csv");
 
-	int x = 0;
-	Lista* l = makeLista(100);
+	int i=0;
+	int* usingIds = malloc(100*sizeof(int));
+	
 	char* input = malloc(20*sizeof(char));
 	scanf(" %s", input);
 	while(!equals(input, "FIM")){
-		x = parseInt(input);
-		pushEnd(l, pokes[x-1]);
+		usingIds[i] = parseInt(input);
+		i++;
 		free(input);
 		input = malloc(20*sizeof(char));
 		scanf(" %s", input);
 	}
 	free(input);
 
-	//printLista(l);
+	Pokemon** using = calloc(i, sizeof(Pokemon*));
+	for(int j=0; j<i; j++){
+		using[j] = pokes[usingIds[j]-1];
+	}
+	free(usingIds);
 
-	/*
 	clock_t start = clock();
 	sort(using, i);
 	for(int j=0; j<i; printMon(using[j++]));
@@ -430,51 +506,6 @@ int main(){
 	free(using);
 	free(pokes);
 	logTP("855947_radixsort.txt", diff(start, end), comps, moves);
-	*/
 
-	int reps = 0;
-	scanf(" %d", &reps);
-	int ins = 0;
-	int index = 0;
-
-	input = malloc(20*sizeof(char));
-	scanf(" %s", input);
-	for(int i=0; i<reps; i++){
-
-		//Operacoes
-		if(equals(input, "II")){
-			scanf(" %d", &ins);
-			pushStart(l, pokes[ins-1]);
-		}
-		else if(equals(input, "IF")){
-			scanf(" %d", &ins);
-			pushEnd(l, pokes[ins-1]);
-		}
-		else if(equals(input, "I*")){
-			scanf(" %d %d", &index, &ins);
-			push(l, pokes[ins-1], index);
-		}
-		else if(equals(input, "RI")){
-			popStart(l);
-		}
-		else if(equals(input, "RF")){
-			popEnd(l);
-		}
-		else if(equals(input, "R*")){
-			scanf(" %d", &index);
-			pop(l, index);
-		}
-		
-		
-		free(input);
-		input = malloc(20*sizeof(char));
-		scanf(" %s", input);
-	}
-	free(input);
-
-	printLista(l);
-
-	free(l->arr);
-	free(l);
 	return 0;
 }

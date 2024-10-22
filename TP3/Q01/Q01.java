@@ -310,6 +310,13 @@ class Lista{
 		return ret;
 	}
 
+	public void print(){
+		for(int i=0; i<n; i++){
+			System.out.print("[" + i + "] ");
+			arr[i].print();
+		}
+	}
+
 	public Pokemon pop(int x){
 		Pokemon ret = null;
 		if(n>0 && x>=0 && x<=n){
@@ -324,12 +331,30 @@ class Lista{
 		return ret;
 	}
 
+	public Pokemon popP(int x){
+		Pokemon tmp = this.pop(x);
+		System.out.println("(R) " + tmp.getName());
+		return tmp;
+	}
+
 	public Pokemon popStart(){
 		return pop(0);
 	}
 
+	public Pokemon popStartP(){
+		Pokemon tmp = this.pop(0);
+		System.out.println("(R) " + tmp.getName());
+		return tmp;
+	}
+
 	public Pokemon popEnd(){
-		return pop(n);
+		return pop(n-1);
+	}
+
+	public Pokemon popEndP(){
+		Pokemon tmp = this.pop(n-1);
+		System.out.println("(R) " + tmp.getName());
+		return tmp;
 	}
 
 	public void pushEnd(Pokemon p){
@@ -342,7 +367,7 @@ class Lista{
 	public void push(Pokemon p, int x){
 		if(n<arr.length){
 			int i = n;
-			while(i>=x){
+			while(i>=x && i>0){
 				arr[i] = arr[i-1];
 				i--;
 			}
@@ -365,76 +390,11 @@ class Lista{
 
 public class Q01{
 
-	static void intercalar(Pokemon[] arr, int esq, int meio, int dir, TP tp){
-		int nEsq = (meio+1)-esq;
-		int nDir = dir-meio;
-		Pokemon[] arrayEsq = new Pokemon[nEsq+1];
-		Pokemon[] arrayDir = new Pokemon[nDir+1];
-
-		// Criar sentinela
-		Pokemon sent = new Pokemon();
-		ArrayList<String> t = new ArrayList<String>();
-		t.add("\uFFFF");
-		sent.setTypes(t);
-
-		arrayEsq[nEsq] = arrayDir[nDir] = sent;
-		tp.move(2);
-
-		int iEsq, iDir, i;
-
-		for(iEsq=0; iEsq<nEsq; iEsq++){
-			arrayEsq[iEsq] = arr[esq+iEsq];
-			tp.move();
-		}
-
-		for(iDir=0; iDir<nDir; iDir++){
-			arrayDir[iDir] = arr[meio+1+iDir];
-			tp.move();
-		}
-		
-		for(iEsq=iDir=0, i=esq; i<=dir; i++){
-			arr[i] = 0>=arrayEsq[iEsq].getTypes().get(0).compareTo(arrayDir[iDir].getTypes().get(0)) ? arrayEsq[iEsq++] : arrayDir[iDir++];
-			tp.comp();
-			tp.move();
-		}
-	}
-
-	static void merge(Pokemon[] arr, int esq, int dir, TP tp){
-		if(esq<dir){
-			int meio = (esq+dir) / 2;
-			merge(arr, esq, meio, tp);
-			merge(arr, meio+1, dir, tp);
-			intercalar(arr, esq, meio, dir, tp);
-		}
-	}
-
 	static void swapPoke(Pokemon[] arr, int a, int b){
 		Pokemon tmp = arr[a];
 		arr[a] = arr[b];
 		arr[b] = tmp;
 	}
-
-	static void insertName(Pokemon[] arr, TP tp){
-		int n = arr.length;
-		for(int i=1; i<n; i++){
-			Pokemon tmp = arr[i];
-			int j = i-1;
-			while(j>=0 && 0==arr[j].getTypes().get(0).compareTo(tmp.getTypes().get(0)) && 0<arr[j].getName().compareTo(tmp.getName())){
-				tp.comp(2);
-				arr[j+1] = arr[j];
-				tp.move();
-				j--;
-			}
-			arr[j+1] = tmp;
-			tp.move();
-		}
-	}
-
-	static void sort(Pokemon[] pokes, TP tp){
-		merge(pokes, 0, pokes.length-1, tp);
-		insertName(pokes, tp);
-	}
-		
 
 	public static void main(String[] args){
 		try{
@@ -442,25 +402,61 @@ public class Q01{
 			Pokemon[] pokes = Pokemon.readFile("/tmp/pokemon.csv");
 			Scanner sc = new Scanner(System.in);
 
-			int[] usingIds = new  int[100];
 			int x = 0;
+			Lista l = new Lista(100);
 			String input = sc.nextLine();
 			while(!input.equals("FIM")){
-				usingIds[x] = Integer.parseInt(input);
-				x++;
+				x = Integer.parseInt(input);
+				l.pushEnd(pokes[x-1]);
 				input = sc.nextLine();
 			}
 
-			Pokemon[] using = new Pokemon[x];
-			for(int i=0; i<x; i++){
-				using[i] = pokes[usingIds[i]-1];
-			}
-			
+			//l.print();
+
+			/*
 			TP tp = new TP();
 			sort(using, tp);
 			tp.end();
 			for(int i=0; i<using.length; using[i++].print());
 			tp.print("855947_mergesort.txt");
+			*/
+
+			int reps = sc.nextInt();
+			int ins = 0;
+			int index = 0;
+			for(int i=0; i<reps; i++){
+				input = sc.next();
+				//Operacoes
+				if(input.equals("II")){
+					ins = sc.nextInt();
+					l.pushStart(pokes[ins-1]);
+					//System.out.println("Inserindo " + ins);
+				}
+				else if(input.equals("IF")){
+					ins = sc.nextInt();
+					l.pushEnd(pokes[ins-1]);
+					//System.out.println("Inserindo " + ins);
+				}
+				else if(input.equals("I*")){
+					index = sc.nextInt();
+					ins = sc.nextInt();
+					l.push(pokes[ins-1], index);
+					//System.out.println("Inserindo " + ins);
+				}
+				else if(input.equals("RI")){
+					l.popStartP();
+				}
+				else if(input.equals("RF")){
+					l.popEndP();
+				}
+				else if(input.equals("R*")){
+					index = sc.nextInt();
+					l.popP(index);
+				}
+
+			}
+
+			l.print();
 
 		} catch(FileNotFoundException e){
 			System.out.println(e);
