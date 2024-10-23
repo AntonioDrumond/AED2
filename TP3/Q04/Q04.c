@@ -296,152 +296,72 @@ void logSearch(const char* fileName, double time, int comps){
 //=====================================================================================================================================================
 //_____________________________________________________________________________________________________________________________________________________
 
-typedef struct Cell Cell;
-typedef struct Cell {
-	Pokemon* p;
-	Cell* next;
-	Cell* prev;
-} Cell;
-
-Cell* makeCell(Pokemon* x){
-	Cell* ret = calloc(1, sizeof(Cell));
-	ret->next = NULL;
-	ret->prev = NULL;
-	ret->p = x;
-	return ret;
-}
 
 typedef struct {
+	Pokemon** arr;
+	int size;
 	int n;
-	Cell* start;
-	Cell* end;
 } Lista;
-
-void delList(Cell* this){
-	if(this->next) delList(this->next);
-	free(this);
-}
-
-void delLista(Lista* l){
-	delList(l->start);
-	free(l);
-}
-
-void printLista(Lista* l){
-	Cell* tmp = l->start->next;
-	int i = 0;
-	while(tmp){
-		printf("[%d] ", i);
-		printMon(tmp->p);
-		i++;
-		tmp = tmp->next;
-	}
-}
 
 Lista* makeLista(int x){
 	Lista* ret = calloc(1, sizeof(Lista));
-	ret->start = makeCell(NULL);
-	ret->end = ret->start;
 	ret->n = 0;
+	ret->size = x;
+	ret->arr = calloc(x+1, sizeof(Pokemon*));
 	return ret;
+}
+
+void printLista(Lista* l){
+	for(int i=0; i<l->n; i++){
+		printf("[%d] ", i);
+		printMon(l->arr[i]);
+	}
 }
 
 Pokemon* pop(Lista* l, int x){
 	Pokemon* ret = NULL;
-	Cell* tmp = l->start->next;
-	for(int i=0; i<x && tmp; i++){
-		tmp = tmp->next;
-	}
-	if(tmp && l->n>0){
-		tmp->prev->next = tmp->next;
-		tmp->next->prev = tmp->prev;
-		tmp->next = NULL;
-		tmp->prev = NULL;
-
-		ret = tmp->p;
-		free(tmp);
+	if(l->n>0 && x>=0 && x<=l->n){
+		ret = l->arr[x];
+		int i = x;
+		while(i<l->n){
+			l->arr[i] = l->arr[i+1];
+			i++;
+		}
 		l->n--;
-		printf("(R) %s\n", ret->name);
-		//printf("(R) %d - %s\n",ret->id, ret->name);
 	}
-	return ret;
-}
-
-Pokemon* popEnd(Lista* l){
-	Pokemon* ret = NULL;
-	Cell* tmp = l->end;
-	if(l->n>=1){
-		l->end = tmp->prev;
-		tmp->prev->next = NULL;
-		tmp->next = NULL;
-		tmp->prev = NULL;
-
-		ret = tmp->p;
-		free(tmp);
-		l->n--;
-		printf("(R) %s\n", ret->name);
-		//printf("(R) %d - %s\n",ret->id, ret->name);
-	}
+	printf("(R) %s\n", ret->name);
 	return ret;
 }
 
 Pokemon* popStart(Lista* l){
-	Pokemon* ret = NULL;
-	Cell* tmp = l->start;
-	if(l->n>=1){
-		tmp = tmp->next;
-		tmp->next->prev = tmp->prev;
-		tmp->prev->next = tmp->next;
-		tmp->prev = NULL;
-		tmp->next = NULL;
+	return pop(l, 0);
+}
 
-		ret = tmp->p;
-		free(tmp);
-		l->n--;
-		printf("(R) %s\n", ret->name);
-		//printf("(R) %d - %s\n",ret->id, ret->name);
-	}
-	return ret;
+Pokemon* popEnd(Lista* l){
+	return pop(l, l->n-1);
 }
 
 void push(Lista* l, Pokemon* p, int x){
-	int i = 0;
-	Cell* b1 = l->start;
-	while(i<x && b1){
-		b1 = b1->next;
-		i++;
-	}
-	if(b1){
-		Cell* b2 = b1->next;
-		Cell* in = makeCell(p);
-		b1->next = in;
-		b2->prev = in;
-		in->prev = b1;
-		in->next = b2;
+	if(l->n < l->size){
+		int i = l->n;
+		while(i>=x){
+			l->arr[i] = l->arr[i-1];
+			i--;
+		}
+		l->arr[x] = p;
 		l->n++;
-		//printf("(I) %d - %s\n", in->p->id, in->p->name);
 	}
 }
 
 void pushEnd(Lista* l, Pokemon* p){
-	Cell* in = makeCell(p);
-	Cell* tmp = l->end;
-	tmp->next = in;
-	in->prev = tmp;
-	l->n++;
-	l->end = in;
-	//printf("(I) %d - %s\n", in->p->id, in->p->name);
+	if(l->n < l->size){
+		l->arr[l->n] = p;
+		l->n++;
+	}
 }
 
 void pushStart(Lista* l, Pokemon* p){
-	Cell* in = makeCell(p);
-	Cell* tmp = l->start->next;
-	l->start->next = in;
-	tmp->prev = in;
-	in->prev = l->start;
-	in->next = tmp;
-	l->n++;
-	//printf("(I) %d - %s\n", in->p->id, in->p->name);
+	push(l, p, 0);
 }
 
 
@@ -554,6 +474,7 @@ int main(){
 
 	printLista(l);
 
-	delLista(l);
+	free(l->arr);
+	free(l);
 	return 0;
 }
