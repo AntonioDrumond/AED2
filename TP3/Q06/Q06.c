@@ -296,72 +296,63 @@ void logSearch(const char* fileName, double time, int comps){
 //=====================================================================================================================================================
 //_____________________________________________________________________________________________________________________________________________________
 
+typedef struct Cell Cell;
+typedef struct Cell {
+	Pokemon* p;
+	Cell* next;
+} Cell;
 
-typedef struct {
-	Pokemon** arr;
-	int size;
-	int start,
-		end;
-} Fila;
-
-Fila* makeFila(int x){
-	Fila* ret = calloc(1, sizeof(Fila));
-	ret->size = x;
-	ret->start = 0;
-	ret->end = 0;
-	ret->arr = calloc(x+1, sizeof(Pokemon*));
+Cell* makeCell(Pokemon* x){
+	Cell* ret = calloc(1, sizeof(Cell));
+	ret->next = NULL;
+	ret->p = x;
 	return ret;
 }
 
-void printFila(Fila* l){
-	int counter = 0;
-	for(int i=l->start; i!=l->end; i=(i+1)%l->size){
-		printf("[%d] ", counter++);
-		printMon(l->arr[i]);
-	}
+typedef struct Stack{
+	Cell* top;
+} Stack;
+
+Stack* makePilha(){
+	Stack* ret = calloc(1, sizeof(Stack));
+	ret->top = NULL;
+	return ret;
 }
 
-Pokemon* pop(Fila* l){
-	int x = 0;
+void push(Stack* s, Pokemon* p){
+	Cell* tmp = makeCell(p);
+	tmp->next = s->top;
+	s->top = tmp;
+}
+
+Pokemon* pop(Stack* s){
 	Pokemon* ret = NULL;
-	if(l->start != l->end){
-		ret = l->arr[l->start];
-		l->start = (l->start+1) % l->size;
+	if(s->top){
+		ret = s->top->p;
+		Cell* tmp = s->top;
+		s->top = s->top->next;
+		tmp->next = NULL;
+		free(tmp);
 		printf("(R) %s\n", ret->name);
 	}
 	return ret;
 }
 
-Pokemon* popNoPrint(Fila* l){
-	int x = 0;
-	Pokemon* ret = NULL;
-	if(l->start != l->end){
-		ret = l->arr[l->start];
-		l->start = (l->start+1) % l->size;
-	}
-	return ret;
+void printPilha(Stack* p){
+	int c = 0;
+	if(p->top) printPilhaCall(p->top, &c);
 }
 
-void printMedia(Fila* l){
-	int sum = 0;
-	int count = 0;
-	for(int i=l->start; i!=l->end; i=(i+1)%l->size){
-		sum += l->arr[i]->captureRate;
-		count++;
+void printPilhaCall(Cell* crr, int* c){
+	if(crr->next){
+		printPilhaCall(crr->next, c);
 	}
-	double m = (sum / (double)count);
-	printf("Média: %.0lf\n", m);
+	printf("[%d] ", *c); (*c)++;
+	printMon(crr->p);
 }
 
-void push(Fila* l, Pokemon* p){
-	if(((l->end+1)%l->size)==l->start){ // Fila cheia
-		//printf("fila CHEIA\n");
-		popNoPrint(l);
-	}
-	l->arr[l->end] = p;
-	l->end = (l->end+1) % l->size;
-	printMedia(l);
-}
+
+
 
 //_____________________________________________________________________________________________________________________________________________________
 //=====================================================================================================================================================
@@ -403,7 +394,7 @@ int main(){
 	Pokemon** pokes = readFile("/tmp/pokemon.csv");
 
 	int x = 0;
-	Fila* p = makeFila(6);
+	Stack* p = makePilha();
 	char* input = malloc(20*sizeof(char));
 	scanf(" %s", input);
 	while(!equals(input, "FIM")){
@@ -446,18 +437,14 @@ int main(){
 			pop(p);
 		}
 		
-		
 		free(input);
 		input = malloc(20*sizeof(char));
 		scanf(" %s", input);
 	}
 	free(input);
 
-	printf("\n");
+	printPilha(p);
 
-	printFila(p);
-
-	free(p->arr);
 	free(p);
 	return 0;
 }

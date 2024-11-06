@@ -296,81 +296,228 @@ void logSearch(const char* fileName, double time, int comps){
 //=====================================================================================================================================================
 //_____________________________________________________________________________________________________________________________________________________
 
+int comps = 0;
+int moves = 0;
+
+typedef struct Cell Cell;
+typedef struct Cell {
+	Pokemon* p;
+	Cell* next;
+	Cell* prev;
+} Cell;
+
+Cell* makeCell(Pokemon* x){
+	Cell* ret = calloc(1, sizeof(Cell));
+	ret->next = NULL;
+	ret->prev = NULL;
+	ret->p = x;
+	return ret;
+}
 
 typedef struct {
-	Pokemon** arr;
-	int size;
-	int start,
-		end;
-} Fila;
+	int n;
+	Cell* start;
+	Cell* end;
+} Lista;
 
-Fila* makeFila(int x){
-	Fila* ret = calloc(1, sizeof(Fila));
-	ret->size = x;
-	ret->start = 0;
-	ret->end = 0;
-	ret->arr = calloc(x+1, sizeof(Pokemon*));
-	return ret;
+void delList(Cell* this){
+	if(this->next) delList(this->next);
+	free(this);
 }
 
-void printFila(Fila* l){
-	int counter = 0;
-	for(int i=l->start; i!=l->end; i=(i+1)%l->size){
-		printf("[%d] ", counter++);
-		printMon(l->arr[i]);
+void delLista(Lista* l){
+	delList(l->start);
+	free(l);
+}
+
+void printLista(Lista* l){
+	Cell* tmp = l->start->next;
+	while(tmp){
+		printMon(tmp->p);
+		tmp = tmp->next;
 	}
 }
 
-Pokemon* pop(Fila* l){
-	int x = 0;
+Lista* makeLista(int x){
+	Lista* ret = calloc(1, sizeof(Lista));
+	ret->start = makeCell(NULL);
+	ret->end = ret->start;
+	ret->n = 0;
+	return ret;
+}
+
+Pokemon* pop(Lista* l, int x){
 	Pokemon* ret = NULL;
-	if(l->start != l->end){
-		ret = l->arr[l->start];
-		l->start = (l->start+1) % l->size;
+	Cell* tmp = l->start->next;
+	for(int i=0; i<x && tmp; i++){
+		tmp = tmp->next;
+	}
+	if(tmp && l->n>0){
+		tmp->prev->next = tmp->next;
+		tmp->next->prev = tmp->prev;
+		tmp->next = NULL;
+		tmp->prev = NULL;
+
+		ret = tmp->p;
+		free(tmp);
+		l->n--;
 		printf("(R) %s\n", ret->name);
+		//printf("(R) %d - %s\n",ret->id, ret->name);
 	}
 	return ret;
 }
 
-Pokemon* popNoPrint(Fila* l){
-	int x = 0;
+Pokemon* popEnd(Lista* l){
 	Pokemon* ret = NULL;
-	if(l->start != l->end){
-		ret = l->arr[l->start];
-		l->start = (l->start+1) % l->size;
+	Cell* tmp = l->end;
+	if(l->n>=1){
+		l->end = tmp->prev;
+		tmp->prev->next = NULL;
+		tmp->next = NULL;
+		tmp->prev = NULL;
+
+		ret = tmp->p;
+		free(tmp);
+		l->n--;
+		printf("(R) %s\n", ret->name);
+		//printf("(R) %d - %s\n",ret->id, ret->name);
 	}
 	return ret;
 }
 
-void printMedia(Fila* l){
-	int sum = 0;
-	int count = 0;
-	for(int i=l->start; i!=l->end; i=(i+1)%l->size){
-		sum += l->arr[i]->captureRate;
-		count++;
+Pokemon* popStart(Lista* l){
+	Pokemon* ret = NULL;
+	Cell* tmp = l->start;
+	if(l->n>=1){
+		tmp = tmp->next;
+		tmp->next->prev = tmp->prev;
+		tmp->prev->next = tmp->next;
+		tmp->prev = NULL;
+		tmp->next = NULL;
+
+		ret = tmp->p;
+		free(tmp);
+		l->n--;
+		printf("(R) %s\n", ret->name);
+		//printf("(R) %d - %s\n",ret->id, ret->name);
 	}
-	double m = (sum / (double)count);
-	printf("Média: %.0lf\n", m);
+	return ret;
 }
 
-void push(Fila* l, Pokemon* p){
-	if(((l->end+1)%l->size)==l->start){ // Fila cheia
-		//printf("fila CHEIA\n");
-		popNoPrint(l);
+void push(Lista* l, Pokemon* p, int x){
+	int i = 0;
+	Cell* b1 = l->start;
+	while(i<x && b1){
+		b1 = b1->next;
+		i++;
 	}
-	l->arr[l->end] = p;
-	l->end = (l->end+1) % l->size;
-	printMedia(l);
+	if(b1){
+		Cell* b2 = b1->next;
+		Cell* in = makeCell(p);
+		b1->next = in;
+		b2->prev = in;
+		in->prev = b1;
+		in->next = b2;
+		l->n++;
+		//printf("(I) %d - %s\n", in->p->id, in->p->name);
+	}
 }
+
+void pushEnd(Lista* l, Pokemon* p){
+	Cell* in = makeCell(p);
+	Cell* tmp = l->end;
+	tmp->next = in;
+	in->prev = tmp;
+	l->n++;
+	l->end = in;
+	//printf("(I) %d - %s\n", in->p->id, in->p->name);
+}
+
+void pushStart(Lista* l, Pokemon* p){
+	Cell* in = makeCell(p);
+	Cell* tmp = l->start->next;
+	l->start->next = in;
+	tmp->prev = in;
+	in->prev = l->start;
+	in->next = tmp;
+	l->n++;
+	//printf("(I) %d - %s\n", in->p->id, in->p->name);
+}
+
+Pokemon* get(Lista* l, int n){
+	Cell* tmp = l->start;
+	int i = 0;
+	while(i<=n && tmp->next){
+		i++;
+		tmp = tmp->next;
+		moves++;
+	}
+	return tmp->p;
+}
+
+void set(Lista* l, int n, Pokemon* p){
+	int i = 0;
+	Cell* tmp = l->start;
+	while(i<=n && tmp->next){
+		i++;
+		tmp = tmp->next;
+		moves++;
+	}
+	tmp->p = p;
+}
+
+void swapPoke(Lista* l, int a, int b){
+	Pokemon* tmp = get(l, a);
+	set(l, a, get(l, b));
+	set(l, b, tmp);
+	moves+=3;
+}
+
+void quickSort(Lista* l, int left, int right){
+	int i = left,
+		j = right;
+	Pokemon* pivo = get(l, (i+j)/2);
+	while(i<=j){
+		while(get(l, i)->generation < pivo->generation || (get(l, i)->generation==pivo->generation && 0>strcmp(get(l, i)->name, pivo->name))){
+			i++;
+			comps++;
+		}
+		while(get(l, j)->generation > pivo->generation || (get(l, j)->generation==pivo->generation && 0<strcmp(get(l, j)->name, pivo->name))){
+			j--;
+			comps++;
+		}
+		if(i<=j){
+			swapPoke(l, i, j);
+			i++;
+			j--;
+		}
+	}
+	if(left<j)
+		quickSort(l, left, j);
+	if(i<right)
+		quickSort(l, i, right);
+}
+
+int getListSize(Lista* l){
+	int i = 0;
+	Cell* c = l->start->next;
+	while(c){
+		i++;
+		c = c->next;
+	}
+	return i;
+}
+
+void sort(Lista* l){
+	quickSort(l, 0, getListSize(l)-1);
+}
+
 
 //_____________________________________________________________________________________________________________________________________________________
 //=====================================================================================================================================================
 //_____________________________________________________________________________________________________________________________________________________
 
 
-
-int comps = 0;
-int moves = 0;
 
 bool equals(const char* s1, const char* s2){
 	return 0==strcmp(s1, s2);
@@ -380,13 +527,6 @@ void swapInt(int* arr, int a, int b){
 	int tmp = arr[a];
 	arr[a] = arr[b];
 	arr[b] = tmp;
-}
-
-void swapPoke(Pokemon** arr, int a, int b){
-	Pokemon* tmp = arr[a];
-	arr[a] = arr[b];
-	arr[b] = tmp;
-	moves += 3;
 }
 
 bool shouldSwap(char* a, char* b){ 
@@ -403,19 +543,19 @@ int main(){
 	Pokemon** pokes = readFile("/tmp/pokemon.csv");
 
 	int x = 0;
-	Fila* p = makeFila(6);
+	Lista* l = makeLista(100);
 	char* input = malloc(20*sizeof(char));
 	scanf(" %s", input);
 	while(!equals(input, "FIM")){
 		x = parseInt(input);
-		push(p, pokes[x-1]);
+		pushEnd(l, pokes[x-1]);
 		free(input);
 		input = malloc(20*sizeof(char));
 		scanf(" %s", input);
 	}
 	free(input);
 
-	//printPilha(p);
+	//printLista(l);
 
 	/*
 	clock_t start = clock();
@@ -428,6 +568,7 @@ int main(){
 	logTP("855947_radixsort.txt", diff(start, end), comps, moves);
 	*/
 
+	/*
 	int reps = 0;
 	scanf(" %d", &reps);
 	int ins = 0;
@@ -438,12 +579,27 @@ int main(){
 	for(int i=0; i<reps; i++){
 
 		//Operacoes
-		if(equals(input, "I")){
+		if(equals(input, "II")){
 			scanf(" %d", &ins);
-			push(p, pokes[ins-1]);
+			pushStart(l, pokes[ins-1]);
 		}
-		else if(equals(input, "R")){
-			pop(p);
+		else if(equals(input, "IF")){
+			scanf(" %d", &ins);
+			pushEnd(l, pokes[ins-1]);
+		}
+		else if(equals(input, "I*")){
+			scanf(" %d %d", &index, &ins);
+			push(l, pokes[ins-1], index);
+		}
+		else if(equals(input, "RI")){
+			popStart(l);
+		}
+		else if(equals(input, "RF")){
+			popEnd(l);
+		}
+		else if(equals(input, "R*")){
+			scanf(" %d", &index);
+			pop(l, index);
 		}
 		
 		
@@ -452,12 +608,14 @@ int main(){
 		scanf(" %s", input);
 	}
 	free(input);
+	*/
 
-	printf("\n");
+	clock_t start = clock();
+	sort(l);
+	clock_t end = clock();
+	printLista(l);
 
-	printFila(p);
-
-	free(p->arr);
-	free(p);
+	delLista(l);
+	logTP("855947_quicksort2.txt", diff(start, end), comps, moves);
 	return 0;
 }

@@ -297,71 +297,109 @@ void logSearch(const char* fileName, double time, int comps){
 //_____________________________________________________________________________________________________________________________________________________
 
 
-typedef struct {
-	Pokemon** arr;
-	int size;
-	int start,
-		end;
+typedef struct Cell Cell;
+typedef struct Cell {
+	Pokemon* p;
+	Cell* next;
+} Cell;
+
+Cell* makeCell(Pokemon* x){
+	Cell* ret = calloc(1, sizeof(Cell));
+	ret->next = NULL;
+	ret->p = x;
+	return ret;
+}
+
+void delCell(Cell** c){
+	(*c)->p = NULL;
+	if((*c)->next) delCell(&(*c)->next);
+	free(*c);
+}
+
+typedef struct Fila{
+	int max;
+	int n;
+	Cell* ini;
+	Cell* fim;
 } Fila;
 
-Fila* makeFila(int x){
+Fila* makeFila(int maxSize){
 	Fila* ret = calloc(1, sizeof(Fila));
-	ret->size = x;
-	ret->start = 0;
-	ret->end = 0;
-	ret->arr = calloc(x+1, sizeof(Pokemon*));
+	ret->max = maxSize;
+	ret->n = 0;
+	ret->ini = makeCell(NULL);
+	ret->fim = ret->ini;
 	return ret;
 }
 
 void printFila(Fila* l){
 	int counter = 0;
-	for(int i=l->start; i!=l->end; i=(i+1)%l->size){
+	Cell* c = l->ini->next;
+	while(c){
 		printf("[%d] ", counter++);
-		printMon(l->arr[i]);
+		printMon(c->p);
+		c = c->next;
 	}
 }
 
 Pokemon* pop(Fila* l){
-	int x = 0;
 	Pokemon* ret = NULL;
-	if(l->start != l->end){
-		ret = l->arr[l->start];
-		l->start = (l->start+1) % l->size;
+	if(l->n>0){
+		l->n--;
+		ret = l->ini->next->p;
+		Cell* tmp = l->ini->next;
+		l->ini->next = l->ini->next->next;
+		tmp->next = NULL;
 		printf("(R) %s\n", ret->name);
+		delCell(&tmp);
 	}
+	if(l->n == 0)
+		l->fim = l->ini;
 	return ret;
 }
 
 Pokemon* popNoPrint(Fila* l){
-	int x = 0;
 	Pokemon* ret = NULL;
-	if(l->start != l->end){
-		ret = l->arr[l->start];
-		l->start = (l->start+1) % l->size;
+	if(l->n>0){
+		l->n--;
+		ret = l->ini->next->p;
+		Cell* tmp = l->ini->next;
+		l->ini->next = l->ini->next->next;
+		tmp->next = NULL;
+		delCell(&tmp);
 	}
+	if(l->n == 0)
+		l->fim = l->ini;
 	return ret;
 }
 
 void printMedia(Fila* l){
 	int sum = 0;
 	int count = 0;
-	for(int i=l->start; i!=l->end; i=(i+1)%l->size){
-		sum += l->arr[i]->captureRate;
-		count++;
+	double m = 0.0;
+	if(l->n>0){
+		Cell* tmp = l->ini->next;
+		while(tmp){
+			sum += tmp->p->captureRate;
+			count++;
+			tmp = tmp->next;
+		}
+		m = (sum / (double)count);
 	}
-	double m = (sum / (double)count);
 	printf("Média: %.0lf\n", m);
 }
 
 void push(Fila* l, Pokemon* p){
-	if(((l->end+1)%l->size)==l->start){ // Fila cheia
-		//printf("fila CHEIA\n");
+	if(l->n > 4){
 		popNoPrint(l);
 	}
-	l->arr[l->end] = p;
-	l->end = (l->end+1) % l->size;
+	Cell* tmp = makeCell(p);
+	l->n++;
+	l->fim->next = tmp;
+	l->fim = l->fim->next;
 	printMedia(l);
 }
+
 
 //_____________________________________________________________________________________________________________________________________________________
 //=====================================================================================================================================================
@@ -446,7 +484,6 @@ int main(){
 			pop(p);
 		}
 		
-		
 		free(input);
 		input = malloc(20*sizeof(char));
 		scanf(" %s", input);
@@ -457,7 +494,6 @@ int main(){
 
 	printFila(p);
 
-	free(p->arr);
 	free(p);
 	return 0;
 }
