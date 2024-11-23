@@ -147,6 +147,40 @@ class Matriz{
 	}
 
 	public Matriz prod(Matriz other){
+		Matriz ret = new Matriz(this.l, other.c);
+		Cell s2 = other.start;
+		Cell r1 = this.start;
+		Cell r2 = s2;
+		Cell r3 = ret.start;
+		
+		Cell c1 = r1;
+		Cell c2 = r2;
+		Cell c3 = r3;
+
+		int tmp = 0;
+
+		for(int x=0; x<this.l; x++){
+			for(int y=0; y<this.l; y++){
+				tmp = 0;
+				for(int z=0; z<this.l; z++){
+					tmp += c1.data * r2.data;
+					c1 = c1.right;
+					r2 = r2.down;
+				}
+				c3.data = tmp;
+				c3 = c3.right;
+				c1 = r1;
+				c2 = c2.right;
+				r2 = c2;
+			}
+			r1 = r1.down;
+			c1 = r1;
+			r2 = s2;
+			c2 = r2;
+			r3 = r3.down;
+			c3 = r3;
+		}
+		return ret;
 	}
 
 
@@ -178,11 +212,11 @@ public class Main{
 		}
 		*/
 
-		int cases = nMats / 2;
-		for(int i=0; i<cases; i++){
+		for(int i=0; i<nMats; i+=2){
 			mats[i].diagMain();
 			mats[i].diagSec();
 			mats[i].soma(mats[i+1]).print();
+			mats[i].prod(mats[i+1]).print();
 		}
 
 	}
