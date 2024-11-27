@@ -286,91 +286,149 @@ class TP{
 //_____________________________________________________________________________________________________________________________________________________
 
 
-class Node1{
-	public int capt;
-	public Node1 left;
-	public Node1 right;
+class Node2{
+	public String name;
+	public Node2 left;
+	public Node2 right;
+	
+	Node2(){
+		name = null;
+		left = right = null;
+	}
 
-	Node1(Pokemon p){
-		this.p = p;
-		left = null;
-		right = null;
+	Node2(Pokemon p){
+		name = p.getName();
+		left = right = null;
 	}
 
 }
 
-class Tree1{
+class Node1{
+	public int capt;
+	public Node2 root;
+	public Node1 left;
+	public Node1 right;
+
+	Node1(int capt){
+		this.capt = capt;
+		left = null;
+		right = null;
+		this.root = null;
+	}
+
+}
+
+class Tree{
 	public Node1 root;
+	Tree(){
+		root = new Node1(7);
+		addCapt(3);
+		addCapt(11);
+		addCapt(1);
+		addCapt(5);
+		addCapt(9);
+		addCapt(13);
+		addCapt(0);
+		addCapt(2);
+		addCapt(4);
+		addCapt(6);
+		addCapt(8);
+		addCapt(10);
+		addCapt(12);
+		addCapt(14);
+	}
 
-	Tree1(){
-		root = null;
-	}
-	
-	public void printMid(){
-		printMid(root);
-	}
+	public void addCapt(int x) {
+        if(root == null){
+            root = new Node1(x);
+        }
+        else if(x < root.capt){
+            addCapt(x, root.left, root);
+        }
+        else{
+            addCapt(x, root.right, root);
+        }
+    }
 
-	private void printMid(Node1 n){
-		if(n.left != null) printMid(n.left);
-		System.out.print(n.p.getName() + " ");
-		if(n.right != null) printMid(n.right);
-	}
-	
+    public void addCapt(int x, Node1 n, Node1 pai) {
+        if(n==null){
+            if(x < pai.capt){
+                pai.left = new Node1(x);
+            }
+            else pai.right = new Node1(x);
+        }
+        else if(x < n.capt){
+            addCapt(x, n.left, n);
+        }
+        else{
+            addCapt(x, n.right, n);
+        }
+    }
+
 	public void insert(Pokemon p){
-		if(root == null) root = new Node1(p);
-		else if(p.getCaptureRate()%15 < root.p.getCaptureRate()%15) insert(p, root.left, root);
-		else  insert(p, root.right, root);
+		insert(p, this.root);
 	}
 
-	private void insert(Pokemon p, Node1 in, Node1 dad){
+	private void insert(Pokemon p, Node1 crr){
+		if(crr.capt == p.getCaptureRate()%15) insert(p, crr.root);
+		else if(crr.capt < p.getCaptureRate()%15) insert(p, crr.left);
+		else if(crr.capt > p.getCaptureRate()%15) insert(p, crr.right);
+	}
+
+	public void insert(Pokemon p, Node2 root){
+		if(root == null) root = new Node2(p);
+		else if(0 > p.getName().compareTo(root.name)) insert(p, root.left, root);
+		else insert(p, root.right, root);
+	}
+
+	private void insert(Pokemon p, Node2 in, Node2 dad){
 		if(in == null){
-			if(p.getCaptureRate()%15 < dad.p.getCaptureRate()%15) dad.left = new Node1(p);
-			else dad.right = new Node1(p);
+			if(0 > p.getName().compareTo(dad.name)) dad.left = new Node2(p);
+			else dad.right = new Node2(p);
 		}
-		else if(p.getCaptureRate()%15 < dad.p.getCaptureRate()%15) insert(p, in.left, in);
+		else if(0 > p.getName().compareTo(dad.name)) insert(p, in.left, in);
 		else insert(p, in.right, in);
 	}
 
-	public void search(String s, TP tp){
-		System.out.println(s);
-		System.out.print("=>raiz ");
-		if(root == null) System.out.println("NAO");
+	public void search(String key, TP tp){
+		StringBuilder path = new StringBuilder("=> ").append(key).append("\nraiz ");
+		boolean found = searchExternal(this.root, key, path, tp);
+		path.append(found ? "SIM" : "NAO");
+		System.out.println(path.toString());
+	}
+
+	//node1 = external | node2 = internal 
+	private boolean searchExternal(Node1 ext, String key, StringBuilder path, TP tp){
+		if(searchInternal(ext.root, key, path, tp)) return true;
 		else{
-			if(s.compareTo(root.p.getName()) == 0){
-				System.out.println("SIM");
-				tp.comp();
+			boolean found = false;
+			if(ext.left!=null){
+				path.append("ESQ ");
+				found = searchExternal(ext.left, key, path, tp);
 			}
-			else if(s.compareTo(root.p.getName()) < 0){
-				System.out.print("esq ");
-				tp.comp();
-				search(s, root.left, tp);
+			if(ext.right!=null && !found){
+				path.append("DIR ");
+				found = searchExternal(ext.right, key, path, tp);
 			}
-			else{
-				System.out.print("dir ");
-				tp.comp();
-				search(s, root.right, tp);
-			}
+			return found;
 		}
 	}
 
-	private void search(String s, Node1 n, TP tp){
-		if(s.compareTo(n.p.getName()) == 0){
-			System.out.println("SIM");
+	private boolean searchInternal(Node2 crr, String key, StringBuilder path, TP tp){
+		if(crr.name.equals(key)) return true;
+		else if(0 > crr.name.compareTo(key)){
 			tp.comp();
-		}
-		else if(s.compareTo(n.p.getName()) < 0){
-			tp.comp();
-			if(n.left == null) System.out.println("esq NAO");
+			if(crr.left == null) return false;
 			else{
-				System.out.print("esq ");
-				search(s, n.left, tp);
+				path.append("esq ");
+				return searchInternal(crr.left, key, path, tp);
 			}
 		}
 		else{
-			if(n.right == null) System.out.println("dir NAO");
+			if(crr.right == null) return false;
 			else{
-				System.out.print("dir ");
-				search(s, n.right, tp);
+				path.append("dir ");
+				return searchInternal(crr.right, key, path, tp);
 			}
 		}
 	}
@@ -383,7 +441,7 @@ class Tree1{
 //_____________________________________________________________________________________________________________________________________________________
 
 
-public class Q01{
+public class Q02{
 
 	static void swapPoke(Pokemon[] arr, int a, int b){
 		Pokemon tmp = arr[a];
@@ -397,32 +455,17 @@ public class Q01{
 			Pokemon[] pokes = Pokemon.readFile("/tmp/pokemon.csv");
 			Scanner sc = new Scanner(System.in);
 
-			Tree1 t = new Tree1();
-			t.insert(
-
-			/*
 			int x = 0;
-			Tree1 t = new Tree1();
+			Tree t = new Tree();
 			String input = sc.nextLine();
 			while(!input.equals("FIM")){
 				x = Integer.parseInt(input);
 				t.insert(pokes[x-1]);
 				input = sc.nextLine();
 			}
-			*/
 
 			//t.printMid();
 
-
-			/*
-			TP tp = new TP();
-			sort(using, tp);
-			tp.end();
-			for(int i=0; i<using.length; using[i++].print());
-			tp.print("855947_mergesort.txt");
-			*/
-
-			/*
 			TP tp = new TP();
 			input = sc.nextLine();
 			while(!input.equals("FIM")){
@@ -430,8 +473,7 @@ public class Q01{
 				input = sc.nextLine();
 			}
 			tp.end();
-			tp.printSearch("855947_arvoreBinaria.txt");
-			*/
+			tp.printSearch("855947_arvoreArvore.txt");
 
 		} catch(FileNotFoundException e){
 			System.out.println(e);

@@ -296,71 +296,102 @@ void logSearch(const char* fileName, double time, int comps){
 //=====================================================================================================================================================
 //_____________________________________________________________________________________________________________________________________________________
 
-
 typedef struct Node Node;
 typedef struct Node{
-	Pokemon* p;
 	Node* left;
 	Node* right;
-	int fac;
+	int height;
+	Pokemon* p;
 } Node;
 
 Node* newNode(Pokemon* x){
 	Node* ret = calloc(1,sizeof(Node));
-	ret->left = ret->right = NULL;
-	ret->fac = 0;
+	ret->left = NULL;
+	ret->right = NULL;
+	ret->height = 1;
 	ret->p = x;
 	return ret;
 }
 
-typedef struct Tree{
+typedef struct Avl{
 	Node* root;
-} Tree;
+} Avl;
 
-Tree* newTree(){
-	Tree* ret = calloc(1,sizeof(Tree));
+Avl* newAvl(){
+	Avl* ret = calloc(1,sizeof(Avl));
 	ret->root = NULL;
 	return ret;
 }
 
-void rotL(Node** n){
-	Node* noDir = (*n)->right;
-	Node* noDirEsq = noDir->left;
-	noDir->left = *n;
-	(*n)->right = noDirEsq;
-	*n = noDir;
+int getHeight(Node* n){
+	return n ? n->height : 0;
 }
 
-void rotR(Node** n){
-	Node* noEsq = (*n)->left;
-	Node* noEsqDir = noEsq->right;
-	noEsq->right = *n;
-	(*n)->left = noEsqDir;
-	*n = noEsq;
+int maxSubHeight(Node* n){
+	int l = getHeight(n->left);
+	int r = getHeight(n->right);
+	return l > r ? l : r;
 }
 
-void rotLR(Node** n){
-	rotL(&(*n)->left);
-	rotR(n);
+int getBalance(Node* n){
+	return n ? getHeight(n->left) - getHeight(n->right) : 0;
 }
 
-void rotRL(Node** n){
-	rotR(&(*n)->right);
-	rotL(n);
+Node* rightRotate(Node* crr){
+	Node* left = crr->left;
+	Node* leftRight = left->right;
+	left->right = crr;
+	crr->left = leftRight;
+	crr->height = 1 + maxSubHeight(crr);
+	left->height = 1 + maxSubHeight(left);
+	return left;
 }
 
-void insertRec(Pokemon* in, Node** i){
-	if(*i == NULL) *i = newNode(in);
-	else if(0 > strcmp(in->name, (*i)->p->name)){
-		insertRec(in, &(*i)->left);
-	}
-	else{
-		insertRec(in, &(*i)->right);
-	}
+Node* leftRotate(Node* crr){
+	Node* right = crr->right;
+	Node* rightLeft = right->left;
+	right->left = crr;
+	crr->right = rightLeft;
+	crr->height = 1 + maxSubHeight(crr);
+	right->height = 1 + maxSubHeight(right);
+	return right;
 }
 
-void insert(Tree* t, Pokemon* in){
-	insertRec(in, &t->root);
+Node* leftRightRotate(Node* node){
+	node->left = leftRotate(node->left);
+	return rightRotate(node);
+}
+
+Node* rightLeftRotate(Node* node){
+	node->right = rightRotate(node->right);
+	return leftRotate(node);
+}
+
+Node* balanceNode(Node* node){
+	int balance = getBalance(node);
+	int left_balance = getBalance(node->left);
+	int right_balance = getBalance(node->right);
+	
+	if(balance > 1 && left_balance >= 0) return rightRotate(node);
+	if(balance < -1 && right_balance <= 0) return leftRotate(node);
+	if(balance > 1 && left_balance > 0) return leftRightRotate(node);
+	if(balance > -1 && left_balance < 0) return rightLeftRotate(node);
+
+	return node;
+}
+
+Node* insertCall(Node* node, Pokemon* x){
+	if(!node) return newNode(x);
+	else if(0 > strcmp(x->name, node->p->name)) node->left = insertCall(node->left, x);
+	else if(0 < strcmp(x->name, node->p->name)) node->right = insertCall(node->right, x);
+	else return node;
+
+	node->height = 1 + maxSubHeight(node);
+	return balanceNode(node);
+}
+
+void insert(Avl* a, Pokemon* x){
+	a->root = insertCall(a->root, x);
 }
 
 void searchRec(char* s, Node* n){
@@ -389,7 +420,7 @@ void search(char* s, Node* n){
 	if(n == NULL) printf("NAO\n");
 	else{
 		if(0==strcmp(s, n->p->name)){
-			printf("SIM");
+			printf("SIM\n");
 		}
 		else if(0 > strcmp(s, n->p->name)){
 			printf("esq ");
@@ -401,8 +432,6 @@ void search(char* s, Node* n){
 		}
 	}
 }
-
-
 
 //_____________________________________________________________________________________________________________________________________________________
 //=====================================================================================================================================================
@@ -439,7 +468,7 @@ int main(){
 	}
 	free(input);
 
-	Tree* t = newTree();
+	Avl* t = newAvl();
 	for(int j=0; j<i; j++){
 		insert(t, pokes[usingIds[j]-1]);
 	}
