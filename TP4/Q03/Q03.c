@@ -245,7 +245,7 @@ void printMon(Pokemon* poke){
 }
 
 Pokemon** readFile(const char* path){
-	Pokemon** result = calloc(803, sizeof(Pokemon*));
+	Pokemon** result = calloc(1000, sizeof(Pokemon*));
 	FILE* csv = fopen(path, "rt");
 	char* trash = malloc(1000 * sizeof(char));
 	fgets(trash, 999, csv);
@@ -259,7 +259,6 @@ Pokemon** readFile(const char* path){
 	fclose(csv);
 	return result;
 }
-
 //_____________________________________________________________________________________________________________________________________________________
 //=====================================================================================================================================================
 //_____________________________________________________________________________________________________________________________________________________
@@ -292,145 +291,147 @@ void logSearch(const char* fileName, double time, int comps){
 	else printf("Erro ao abrir o arquivo");
 }
 
-//_____________________________________________________________________________________________________________________________________________________
-//=====================================================================================================================================================
-//_____________________________________________________________________________________________________________________________________________________
+// _____________________________________________________________________________________________________________________________________________________
+// =====================================================================================================================================================
+// _____________________________________________________________________________________________________________________________________________________
 
 typedef struct Node Node;
-typedef struct Node{
-	Node* left;
-	Node* right;
-	int height;
-	Pokemon* p;
+typedef struct Node {
+    Node* left;
+    Node* right;
+    int height;
+    Pokemon* p;
 } Node;
 
-Node* newNode(Pokemon* x){
-	Node* ret = calloc(1,sizeof(Node));
-	ret->left = NULL;
-	ret->right = NULL;
-	ret->height = 1;
-	ret->p = x;
-	return ret;
+Node* newNode(Pokemon* x) {
+    Node* ret = calloc(1, sizeof(Node));
+    ret->left = NULL;
+    ret->right = NULL;
+    ret->height = 1;
+    ret->p = x;
+    return ret;
 }
 
-typedef struct Avl{
-	Node* root;
+typedef struct Avl {
+    Node* root;
 } Avl;
 
-Avl* newAvl(){
-	Avl* ret = calloc(1,sizeof(Avl));
-	ret->root = NULL;
-	return ret;
+Avl* newAvl() {
+    Avl* ret = calloc(1, sizeof(Avl));
+    ret->root = NULL;
+    return ret;
 }
 
-int getHeight(Node* n){
-	return n ? n->height : 0;
+int getHeight(Node* n) {
+    return n ? n->height : 0;
 }
 
-int maxSubHeight(Node* n){
-	int l = getHeight(n->left);
-	int r = getHeight(n->right);
-	return l > r ? l : r;
+int maxSubHeight(Node* n) {
+    int l = getHeight(n->left);
+    int r = getHeight(n->right);
+    return l > r ? l : r;
 }
 
-int getBalance(Node* n){
-	return n ? getHeight(n->left) - getHeight(n->right) : 0;
+int getBalance(Node* n) {
+    return n ? getHeight(n->left) - getHeight(n->right) : 0;
 }
 
-Node* rightRotate(Node* crr){
-	Node* left = crr->left;
-	Node* leftRight = left->right;
-	left->right = crr;
-	crr->left = leftRight;
-	crr->height = 1 + maxSubHeight(crr);
-	left->height = 1 + maxSubHeight(left);
-	return left;
+Node* rightRotate(Node* crr) {
+    Node* left = crr->left;
+    Node* leftRight = left->right;
+    left->right = crr;
+    crr->left = leftRight;
+    crr->height = 1 + maxSubHeight(crr);
+    left->height = 1 + maxSubHeight(left);
+    return left;
 }
 
-Node* leftRotate(Node* crr){
-	Node* right = crr->right;
-	Node* rightLeft = right->left;
-	right->left = crr;
-	crr->right = rightLeft;
-	crr->height = 1 + maxSubHeight(crr);
-	right->height = 1 + maxSubHeight(right);
-	return right;
+Node* leftRotate(Node* crr) {
+    Node* right = crr->right;
+    Node* rightLeft = right->left;
+    right->left = crr;
+    crr->right = rightLeft;
+    crr->height = 1 + maxSubHeight(crr);
+    right->height = 1 + maxSubHeight(right);
+    return right;
 }
 
-Node* leftRightRotate(Node* node){
-	node->left = leftRotate(node->left);
-	return rightRotate(node);
+Node* leftRightRotate(Node* node) {
+    node->left = leftRotate(node->left);
+    return rightRotate(node);
 }
 
-Node* rightLeftRotate(Node* node){
-	node->right = rightRotate(node->right);
-	return leftRotate(node);
+Node* rightLeftRotate(Node* node) {
+    node->right = rightRotate(node->right);
+    return leftRotate(node);
 }
 
-Node* balanceNode(Node* node){
-	int balance = getBalance(node);
-	int left_balance = getBalance(node->left);
-	int right_balance = getBalance(node->right);
-	
-	if(balance > 1 && left_balance >= 0) return rightRotate(node);
-	if(balance < -1 && right_balance <= 0) return leftRotate(node);
-	if(balance > 1 && left_balance > 0) return leftRightRotate(node);
-	if(balance > -1 && left_balance < 0) return rightLeftRotate(node);
+Node* balanceNode(Node* node) {
+    int balance = getBalance(node);
+    int left_balance = getBalance(node->left);
+    int right_balance = getBalance(node->right);
 
-	return node;
+    if (balance > 1 && left_balance >= 0) return rightRotate(node);
+    if (balance < -1 && right_balance <= 0) return leftRotate(node);
+    if (balance > 1 && left_balance < 0) return leftRightRotate(node);
+    if (balance < -1 && right_balance > 0) return rightLeftRotate(node);
+
+    return node;
 }
 
-Node* insertCall(Node* node, Pokemon* x){
-	if(!node) return newNode(x);
-	else if(0 > strcmp(x->name, node->p->name)) node->left = insertCall(node->left, x);
-	else if(0 < strcmp(x->name, node->p->name)) node->right = insertCall(node->right, x);
-	else return node;
+Node* insertCall(Node* node, Pokemon* x) {
+    if (!node) return newNode(x);
 
-	node->height = 1 + maxSubHeight(node);
-	return balanceNode(node);
+    // Comparação de strings para inserir na árvore de forma ordenada
+    if (strcmp(x->name, node->p->name) < 0)
+        node->left = insertCall(node->left, x);
+    else if (strcmp(x->name, node->p->name) > 0)
+        node->right = insertCall(node->right, x);
+    else
+        return node;  // Não permite duplicatas
+
+    node->height = 1 + maxSubHeight(node);
+    return balanceNode(node);
 }
 
-void insert(Avl* a, Pokemon* x){
-	a->root = insertCall(a->root, x);
+void insert(Avl* a, Pokemon* x) {
+    a->root = insertCall(a->root, x);
 }
 
-void searchRec(char* s, Node* n){
-	if(0 == strcmp(s, n->p->name)){
-		printf("SIM\n");
-	}
-	else if(0 > strcmp(s, n->p->name)){
-		if(!n->left) printf("esq NAO\n");
-		else{
-			printf("esq ");
-			searchRec(s, n->left);
-		}
-	}
-	else{
-		if(!n->right) printf("dir NAO\n");
-		else{
-			printf("dir ");
-			searchRec(s, n->right);
-		}
-	}
+void searchRec(char* s, Node* n) {
+    if (0 == strcmp(s, n->p->name)) {
+        printf("SIM\n");
+    } else if (0 > strcmp(s, n->p->name)) {
+        if (!n->left) printf("esq NAO\n");
+        else {
+            printf("esq ");
+            searchRec(s, n->left);
+        }
+    } else {
+        if (!n->right) printf("dir NAO\n");
+        else {
+            printf("dir ");
+            searchRec(s, n->right);
+        }
+    }
 }
 
-void search(char* s, Node* n){
-	printf("%s\n", s);
-	printf("raiz ");
-	if(n == NULL) printf("NAO\n");
-	else{
-		if(0==strcmp(s, n->p->name)){
-			printf("SIM\n");
-		}
-		else if(0 > strcmp(s, n->p->name)){
-			printf("esq ");
-			searchRec(s, n->left);
-		}
-		else{
-			printf("dir ");
-			searchRec(s, n->right);
-		}
-	}
+void search(char* s, Node* n) {
+    printf("%s\n", s);
+    printf("raiz ");
+    if (n == NULL) {
+        printf("NAO\n");
+    } else {
+        if (strcmp(s, n->p->name) == 0) {
+            printf("SIM\n");
+        } else if (strcmp(s, n->p->name) < 0) {
+            printf("esq ");
+            searchRec(s, n->left);
+        } else {
+            printf("dir ");
+            searchRec(s, n->right);
+        }
+    }
 }
 
 //_____________________________________________________________________________________________________________________________________________________
@@ -454,10 +455,10 @@ void swapInt(int* arr, int a, int b){
 int main(){
 	Pokemon** pokes = readFile("/tmp/pokemon.csv");
 
-	int i=0;
+	int i = 0;
 	int* usingIds = malloc(100*sizeof(int));
-	
 	char* input = malloc(20*sizeof(char));
+
 	scanf(" %s", input);
 	while(!equals(input, "FIM")){
 		usingIds[i] = parseInt(input);
@@ -474,6 +475,7 @@ int main(){
 	}
 	free(usingIds);
 
+	clock_t start = clock();
 	input = malloc(40*sizeof(char));
 	scanf(" %s", input);
 	while(!equals(input, "FIM")){
@@ -485,16 +487,9 @@ int main(){
 		scanf(" %s", input);
 	}
 	free(input);
-
-	/*
-	clock_t start = clock();
-	sort(using, i);
-	for(int j=0; j<i; printMon(using[j++]));
 	clock_t end = clock();
-	*/
 
-	free(pokes);
-	//logTP("855947_bolha.txt", diff(start, end), comps, moves);
+	logSearch("855947_avl.txt", diff(start, end), comps);
 
 	return 0;
 }

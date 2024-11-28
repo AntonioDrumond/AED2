@@ -286,152 +286,153 @@ class TP{
 //_____________________________________________________________________________________________________________________________________________________
 
 
-class Node2{
-	public String name;
-	public Node2 left;
-	public Node2 right;
-	
-	Node2(){
-		name = null;
-		left = right = null;
-	}
+class noSec{
+	public String data;
+	public noSec esq;
+	public noSec dir;
 
-	Node2(Pokemon p){
-		name = p.getName();
-		left = right = null;
+	noSec(String x){
+		data = x;
+		esq = null;
+		dir = null;
 	}
 
 }
 
-class Node1{
-	public int capt;
-	public Node2 root;
-	public Node1 left;
-	public Node1 right;
+class treeSec{
+	public noSec root;
+	
+	treeSec(){
+		root = null;
+	}
 
-	Node1(int capt){
-		this.capt = capt;
-		left = null;
-		right = null;
-		this.root = null;
+	public void add(String x, TP tp){
+		root = add(x, root, tp);
+	}
+
+	public noSec add(String x, noSec i, TP tp){
+		if(i==null){
+			tp.comp();
+			i = new noSec(x);
+		}
+		else if(x.compareTo(i.data) < 0){
+			tp.comp();
+			i.esq = add(x, i.esq, tp);
+		}
+		else{
+			i.dir = add(x, i.dir, tp);
+		}
+		return i;
+	}
+
+	public boolean search(String x, TP tp){
+		return search(x, root, tp);
+	}
+
+	public boolean search(String x, noSec i, TP tp){
+		while(i!=null){
+			if(i.data.equals(x)){
+				tp.comp();
+				return true;
+			}
+			else if(x.compareTo(i.data) > 0){
+				tp.comp();
+				System.out.print("dir ");
+				i = i.dir;
+			}
+			else{
+				System.out.print("esq ");
+				i = i.esq;
+			}
+		}
+		return false;
+	}
+
+}
+
+class Node{
+	public int data;
+	public treeSec sRoot;
+	public Node esq;
+	public Node dir;
+
+	public Node(int x){
+		sRoot = new treeSec();
+		data = x;
+		esq = null;
+		dir = null;
 	}
 
 }
 
 class Tree{
-	public Node1 root;
-	Tree(){
-		root = new Node1(7);
-		addCapt(3);
-		addCapt(11);
-		addCapt(1);
-		addCapt(5);
-		addCapt(9);
-		addCapt(13);
-		addCapt(0);
-		addCapt(2);
-		addCapt(4);
-		addCapt(6);
-		addCapt(8);
-		addCapt(10);
-		addCapt(12);
-		addCapt(14);
+	public Node root;
+
+	public Tree(){
+		root = null;
 	}
 
-	public void addCapt(int x) {
-        if(root == null){
-            root = new Node1(x);
-        }
-        else if(x < root.capt){
-            addCapt(x, root.left, root);
-        }
-        else{
-            addCapt(x, root.right, root);
-        }
-    }
-
-    public void addCapt(int x, Node1 n, Node1 pai) {
-        if(n==null){
-            if(x < pai.capt){
-                pai.left = new Node1(x);
-            }
-            else pai.right = new Node1(x);
-        }
-        else if(x < n.capt){
-            addCapt(x, n.left, n);
-        }
-        else{
-            addCapt(x, n.right, n);
-        }
-    }
-
-	public void insert(Pokemon p){
-		insert(p, this.root);
+	public boolean walk(String str, TP tp){
+		System.out.println("=> " + str);
+		System.out.print("raiz ");
+		boolean[] found = new boolean[1];
+		found[0] = false;
+		walk(root, str, found, tp);
+		return found[0];
 	}
 
-	private void insert(Pokemon p, Node1 crr){
-		if(crr.capt == p.getCaptureRate()%15) insert(p, crr.root);
-		else if(crr.capt < p.getCaptureRate()%15) insert(p, crr.left);
-		else if(crr.capt > p.getCaptureRate()%15) insert(p, crr.right);
-	}
-
-	public void insert(Pokemon p, Node2 root){
-		if(root == null) root = new Node2(p);
-		else if(0 > p.getName().compareTo(root.name)) insert(p, root.left, root);
-		else insert(p, root.right, root);
-	}
-
-	private void insert(Pokemon p, Node2 in, Node2 dad){
-		if(in == null){
-			if(0 > p.getName().compareTo(dad.name)) dad.left = new Node2(p);
-			else dad.right = new Node2(p);
-		}
-		else if(0 > p.getName().compareTo(dad.name)) insert(p, in.left, in);
-		else insert(p, in.right, in);
-	}
-
-	public void search(String key, TP tp){
-		StringBuilder path = new StringBuilder("=> ").append(key).append("\nraiz ");
-		boolean found = searchExternal(this.root, key, path, tp);
-		path.append(found ? "SIM" : "NAO");
-		System.out.println(path.toString());
-	}
-
-	//node1 = external | node2 = internal 
-	private boolean searchExternal(Node1 ext, String key, StringBuilder path, TP tp){
-		if(searchInternal(ext.root, key, path, tp)) return true;
-		else{
-			boolean found = false;
-			if(ext.left!=null){
-				path.append("ESQ ");
-				found = searchExternal(ext.left, key, path, tp);
+	public void walk(Node i, String str, boolean[] found, TP tp){
+		if(i!=null){
+			found[0] = i.sRoot.search(str, tp);
+			if(!found[0]){
+				System.out.print(" ESQ ");
+				walk(i.esq, str, found, tp);
 			}
-			if(ext.right!=null && !found){
-				path.append("DIR ");
-				found = searchExternal(ext.right, key, path, tp);
-			}
-			return found;
-		}
-	}
-
-	private boolean searchInternal(Node2 crr, String key, StringBuilder path, TP tp){
-		if(crr.name.equals(key)) return true;
-		else if(0 > crr.name.compareTo(key)){
-			tp.comp();
-			if(crr.left == null) return false;
-			else{
-				path.append("esq ");
-				return searchInternal(crr.left, key, path, tp);
-			}
-		}
-		else{
-			if(crr.right == null) return false;
-			else{
-				path.append("dir ");
-				return searchInternal(crr.right, key, path, tp);
+			if(!found[0]){
+				System.out.print(" DIR ");
+				walk(i.dir, str, found, tp);
 			}
 		}
 	}
+
+	public void addStart(int x){
+		root = addStart(x, root);
+	}
+
+	 public Node addStart(int x, Node i){
+		 if(i==null){
+			 i = new Node(x);
+		 }
+		 else if(x < i.data){
+			 i.esq = addStart(x, i.esq);
+		 }
+		 else if(x > i.data){
+			 i.dir = addStart(x, i.dir);
+		 }
+		 return i;
+	 }
+
+	 public void add(int x, String name, TP tp){
+		 root = add(x, root, name, tp);
+	 }
+
+	 public Node add(int x, Node i, String name, TP tp){
+		 if(i==null){
+			 tp.comp();
+			 i = new Node(x);
+			 i.sRoot.add(name, tp);
+		 }
+		 else if(x < i.data){
+			 tp.comp();
+			 i.esq = add(x, i.esq, name, tp);
+		 }
+		 else if(x > i.data){
+			 tp.comp();
+			 i.dir = add(x, i.dir, name, tp);
+		 }
+		 else i.sRoot.add(name, tp);
+		 return i;
+	 }
 
 }
 
@@ -457,19 +458,38 @@ public class Q02{
 
 			int x = 0;
 			Tree t = new Tree();
+			t.addStart(7);
+			t.addStart(3);
+			t.addStart(11);
+			t.addStart(1);
+			t.addStart(5);
+			t.addStart(9);
+			t.addStart(13);
+			t.addStart(0);
+			t.addStart(2);
+			t.addStart(4);
+			t.addStart(6);
+			t.addStart(8);
+			t.addStart(10);
+			t.addStart(12);
+			t.addStart(14);
+
+			TP tp = new TP();
+
 			String input = sc.nextLine();
 			while(!input.equals("FIM")){
 				x = Integer.parseInt(input);
-				t.insert(pokes[x-1]);
+				t.add(pokes[x-1].getCaptureRate()%15, pokes[x-1].getName(), tp);
 				input = sc.nextLine();
 			}
 
 			//t.printMid();
 
-			TP tp = new TP();
+			
 			input = sc.nextLine();
 			while(!input.equals("FIM")){
-				t.search(input, tp);
+				if(t.walk(input, tp)) System.out.println(" SIM");
+				else System.out.println(" NAO");
 				input = sc.nextLine();
 			}
 			tp.end();
