@@ -287,32 +287,162 @@ class TP{
 
 
 class Node{
-	public boolean color;
-	public Pokemon p;
-	Node right;
-	Node left;
-	Node parent;
+    public Pokemon pokemon;
+    public Node esq;
+    public Node dir;
+    public Node pai;
+	public boolean cor;
 
-	Node(Pokemon p){
-		this.p = p;
-		color = true;
-		right = null;
-		left = null;
-		parent = null;
+	Node(Pokemon pokemon){
+		this.pokemon = pokemon;
+		esq = null;
+		dir = null;
+		pai = null;
+		cor = false;
 	}
-
 }
 
 class Tree{
-	Node root;
+	public Node root;
+	public final Node nula;
 
-	Tree(){
-		root = null;
+	public Tree(){
+		nula = new Node(null);
+		nula.cor = false;
+		this.root = nula;
 	}
 
-	public void leftRotate(Node1
+    public void inserir(Pokemon pokemon) {
+        Node novoNo = new Node(pokemon);
+        novoNo.esq = nula;
+        novoNo.dir = nula;
+        root = inserirRec(root, novoNo);
+        balancearInsercao(novoNo);
+    }
 
+    private Node inserirRec(Node crr, Node novoNo){
+        if (crr == nula) {
+            return novoNo;
+        }
+        if (novoNo.pokemon.getName().compareTo(crr.pokemon.getName()) < 0) {
+            crr.esq = inserirRec(crr.esq, novoNo);
+            crr.esq.pai = crr;
+        } else if (novoNo.pokemon.getName().compareTo(crr.pokemon.getName()) > 0) {
+            crr.dir = inserirRec(crr.dir, novoNo);
+            crr.dir.pai = crr;
+        }
+        return crr;
+    }
+	
+    private void balancearInsercao(Node no){
+        while (no.pai != null && no.pai.cor == true) {
+            if (no.pai == no.pai.pai.esq) {
+                Node tio = no.pai.pai.dir;
+                if (tio.cor == true) {
+                    no.pai.cor = false;
+                    tio.cor = false;
+                    no.pai.pai.cor = true;
+                    no = no.pai.pai;
+                } else {
+                    if (no == no.pai.dir) {
+                        no = no.pai;
+                        rotacaoEsquerda(no);
+                    }
+                    no.pai.cor = false;
+                    no.pai.pai.cor = true;
+                    rotacaoDireita(no.pai.pai);
+                }
+            } else {
+                Node tio = no.pai.pai.esq;
+                if (tio.cor == true) {
+                    no.pai.cor = false;
+                    tio.cor = false;
+                    no.pai.pai.cor = true;
+                    no = no.pai.pai;
+                } else {
+                    if (no == no.pai.esq) {
+                        no = no.pai;
+                        rotacaoDireita(no);
+                    }
+                    no.pai.cor = false;
+                    no.pai.pai.cor = true;
+                    rotacaoEsquerda(no.pai.pai);
+                }
+            }
+        }
+        root.cor = false;
+    }
 
+    private void rotacaoEsquerda(Node no) {
+        Node novoPai = no.dir;
+        no.dir = novoPai.esq;
+        if (novoPai.esq != nula) {
+            novoPai.esq.pai = no;
+        }
+        novoPai.pai = no.pai;
+        if (no.pai == null) {
+            root = novoPai;
+        } else if (no == no.pai.esq) {
+            no.pai.esq = novoPai;
+        } else {
+            no.pai.dir = novoPai;
+        }
+        novoPai.esq = no;
+        no.pai = novoPai;
+    }
+
+    private void rotacaoDireita(Node no) {
+        Node novoPai = no.esq;
+        no.esq = novoPai.dir;
+        if (novoPai.dir != nula) {
+            novoPai.dir.pai = no;
+        }
+        novoPai.pai = no.pai;
+        if (no.pai == null) {
+            root = novoPai;
+        } else if (no == no.pai.dir) {
+            no.pai.dir = novoPai;
+        } else {
+            no.pai.esq = novoPai;
+        }
+        novoPai.dir = no;
+        no.pai = novoPai;
+    }
+
+    public void mostrar() {
+        mostrarRec(root);
+    }
+
+    private void mostrarRec(Node no) {
+        if (no != nula) {
+            mostrarRec(no.esq);
+            System.out.println(no.pokemon);
+            mostrarRec(no.dir);
+        }
+    }
+
+    public void pesquisar(String nome) {
+        StringBuilder caminho = new StringBuilder("raiz");
+        boolean encontrado = pesquisarRec(root, nome, caminho);
+        System.out.println(caminho.toString() + (encontrado ? " SIM" : " NAO"));
+    }
+
+    private boolean pesquisarRec(Node no, String nome, StringBuilder caminho) {
+        if (no == nula) {
+            return false;
+        }
+
+        if (no.pokemon.getName().equals(nome)) {
+            return true;
+        } else if (nome.compareTo(no.pokemon.getName()) < 0) {
+            caminho.append(" esq");
+            return pesquisarRec(no.esq, nome, caminho);
+        } else {
+            caminho.append(" dir");
+            return pesquisarRec(no.dir, nome, caminho);
+        }
+    }
+}
 
 
 //_____________________________________________________________________________________________________________________________________________________
@@ -336,42 +466,26 @@ public class Q04{
 
 			int x = 0;
 			Tree t = new Tree();
-			t.addStart(7);
-			t.addStart(3);
-			t.addStart(11);
-			t.addStart(1);
-			t.addStart(5);
-			t.addStart(9);
-			t.addStart(13);
-			t.addStart(0);
-			t.addStart(2);
-			t.addStart(4);
-			t.addStart(6);
-			t.addStart(8);
-			t.addStart(10);
-			t.addStart(12);
-			t.addStart(14);
 
 			TP tp = new TP();
 
 			String input = sc.nextLine();
 			while(!input.equals("FIM")){
 				x = Integer.parseInt(input);
-				t.add(pokes[x-1].getCaptureRate()%15, pokes[x-1].getName(), tp);
+				t.inserir(pokes[x-1]);
 				input = sc.nextLine();
 			}
 
 			//t.printMid();
-
 			
 			input = sc.nextLine();
 			while(!input.equals("FIM")){
-				if(t.walk(input, tp)) System.out.println(" SIM");
-				else System.out.println(" NAO");
+				System.out.println(input);
+				t.pesquisar(input);
 				input = sc.nextLine();
 			}
 			tp.end();
-			tp.printSearch("855947_arvoreArvore.txt");
+			tp.printSearch("855947_alvinegra.txt");
 
 		} catch(FileNotFoundException e){
 			System.out.println(e);
