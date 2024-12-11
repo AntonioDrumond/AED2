@@ -368,7 +368,7 @@ int hash(const char* word, int mod){
 
 void tInsert(Table* t, Pokemon* p){
 	int pos = hash(p->name, t->size);
-	printf("%d\n", pos);
+	//printf("%d\n", pos);
 	comps++;
 	pushEnd(t->arr[pos], p);
 }
@@ -377,10 +377,12 @@ void tSearch(Table* t, const char* name){
 	int pos = hash(name, t->size);
 	comps++;
 	bool found = false;
-	for(int i=0; i<10 && !found; i++){
+	for(int i=0; i<10 && !found && t->arr[pos]->arr[i]; i++){
+		comps++;
 		if(0==strcmp(t->arr[pos]->arr[i]->name, name)) found = true;
 	}
 	if(found) printf("=> %s: (Posicao: %d) SIM\n", name, pos);
+	else printf("=> %s: NAO\n", name);
 }
 
 
